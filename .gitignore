@@ -1,0 +1,8 @@
+.idae
+.vscode
+.DB_Store
+.env
+*.log
+/node_modules
+/laradock
+/nodedock

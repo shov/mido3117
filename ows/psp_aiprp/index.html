@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Cookies</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        .centered {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            height: 150px;
+            transform: translate(-50%, -50%);
+        }
+
+        .box {
+            padding: 15px;
+            border: 1px solid grey;
+        }
+
+        .line {
+            padding: 10px 0 10px 0;
+        }
+
+        .line input[type=text] {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="user-data" class="centered box">
+        <div class="line">
+            <label for="user-firstname">Имя</label><input type="text" id="user-firstname">
+        </div>
+        <div class="line">
+            <label for="user-surname">Фамилия</label><input type="text" id="user-surname">
+        </div>
+    </div>
+    <script src="frontScript.js"></script>
+</body>
+</html>

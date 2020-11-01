@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <unistd.h>
-#include <stdlib.h>
-#include <math.h>
 #include <sys/time.h>
 #include "sys/wait.h"
 #include "signal.h"
@@ -80,7 +78,10 @@ void sig_handler(int sig) {
         case SIGUSR1:
         case SIGUSR2:
             if (0 != sig_stack_ptr->push(sig_stack_ptr, sig)) {
-                printf("[Process %d] incoming signals stack is full, got signal %s.\n", processes[*me_ptr].num, get_signal_name(sig));
+                printf("[Process %d] incoming signals stack is full, got signal %s.\n",
+                       processes[*me_ptr].num,
+                       get_signal_name(sig)
+                );
             }
             break;
         default:
@@ -151,12 +152,12 @@ int main(int argc, char **args) {
     if (me == 0) {
         printf("Ready. Initial info:\n");
         for (int i = 0; i < threshold; i++) {
-            printf("Process %d, PPID: %d, PID: %d, should call %d, with signal %d for the first round\n",
+            printf("Process %d, PPID: %d, PID: %d, should call %d, with signal %s for the first round\n",
                    processes[i].num,
                    processes[i].ppid,
                    processes[i].pid,
                    processes[i].link_to_call->num,
-                   processes[i].get_signal(&processes[i])
+                   get_signal_name(processes[i].sig)
             );
         }
 
@@ -216,7 +217,7 @@ int main(int argc, char **args) {
                 break;
             case 1:
                 //Blocked, check the timer
-                //and if the process already been called not to break the chain
+                //and check if the process has been already called, not to break the chain
                 //if so unset if it's time
                 if (did_past_ms(timer, 100) && had_been_called) {
                     processes[me].mutex = 0;
@@ -233,14 +234,14 @@ int main(int argc, char **args) {
     }
 
     //Release resources
+    destroy_sig_stack(sig_stack_ptr);
     printf("[Process %d] unmapping shared memory\n", processes[me].num);
     munmap(processes, sizeof(Proc_Data) * 4);
     if (0 == me) {
-        printf("[Process %d] is waiting the children are terminated\n", me+1);
+        printf("[Process %d] is waiting the children are terminated\n", me + 1);
         int stat;
         wait(&stat);
-        printf("[Process %d] reports: child processes terminated, stat: %d\n", me+1, stat);
-        printf("[Process %d] is being terminated\n", me+1);
+        printf("[Process %d] reports: child processes terminated, stat: %d\n", me + 1, stat);
+        printf("[Process %d] is being terminated\n", me + 1);
     }
-    exit(0);
 }

@@ -14,11 +14,11 @@ if [ -z "$REFERENCE" ]; then
 fi
 
 if [ ! -d "$START_DIR" ] || [ ! -r "$START_DIR" ]; then
-  echo "Second argument must be a path to the readable directory!"
+  echo "Second argument must be a path to a readable directory!"
   exit 1
 fi
 
-#Trimm trailing slash
+#Get a full path
 START_DIR=$(cd "$START_DIR" && pwd)
 
 echo "Looking for \"$REFERENCE\""

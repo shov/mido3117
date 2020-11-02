@@ -31,6 +31,7 @@ int get_signal(Proc_Data *process_entity) {
 }
 
 Proc_Data *processes;
+int *log_counter;
 
 /////// TIMING
 void wait100ms() {
@@ -95,6 +96,11 @@ int main(int argc, char **args) {
     printf("Started\n");
     processes = mmap(NULL, sizeof(Proc_Data) * 4, PROT_READ | PROT_WRITE,
                      MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    log_counter = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE,
+                       MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+
+    //Init global counter
+    *log_counter = 0;
 
     //Max processes
     int threshold = 4;
@@ -185,6 +191,11 @@ int main(int argc, char **args) {
                    processes[me].pid,
                    get_signal_name(*sig)
             );
+            printf("[%d] pid %d, ppid %d, current time %li, process number %d get %s\n",
+                   ++(*log_counter), processes[me].pid, processes[me].ppid,
+                   get_now_ms(), processes[me].num,
+                   get_signal_name(*sig)
+            );
 
             had_been_called = 1;
         }
@@ -201,6 +212,14 @@ int main(int argc, char **args) {
                 had_been_called = 0;
 
                 int sig_to_call = processes[me].get_signal(&processes[me]);
+
+                //Required log line
+                printf("[%d] pid %d, ppid %d, current time %li, process number %d put %s\n",
+                       ++(*log_counter), processes[me].pid, processes[me].ppid,
+                       get_now_ms(), processes[me].num,
+                       get_signal_name(sig_to_call)
+                );
+
                 printf("[Process %d] (PID: %d) calls process %d (PID: %d) with signal %s...\n",
                        processes[me].num, processes[me].pid,
                        processes[me].link_to_call->num, processes[me].link_to_call->pid,

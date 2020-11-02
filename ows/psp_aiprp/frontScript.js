@@ -10,18 +10,18 @@ nsPspAipRp.ONE_MINUTE = 60
 nsPspAipRp.getCookie = (name) => {
   const row = document.cookie
     .split(';')
-    .find(x => x.trim().startsWith(name))
+    .find(x => x.trim().startsWith(encodeURIComponent(name)))
 
   if (!row) {
     return undefined
   }
 
-  return row.split('=')[1]
+  return decodeURIComponent(row.split('=')[1])
 }
 
 nsPspAipRp.setCookie = (name, value, age = nsPspAipRp.ONE_MINUTE) => {
   if ('number' !== typeof age) {
-    console.warn(`Cookie max age must be number of seconds! Fallback to one minute`)
+    console.warn(`Cookie max age must be a number of seconds! Fallback to one minute`)
     age = nsPspAipRp.ONE_MINUTE
   }
 

@@ -256,6 +256,7 @@ int main(int argc, char **args) {
     destroy_sig_stack(sig_stack_ptr);
     printf("[Process %d] unmapping shared memory\n", processes[me].num);
     munmap(processes, sizeof(Proc_Data) * 4);
+    munmap(log_counter, sizeof(int));
     if (0 == me) {
         printf("[Process %d] is waiting the children are terminated\n", me + 1);
         int stat;

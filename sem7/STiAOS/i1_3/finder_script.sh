@@ -9,7 +9,7 @@ REFERENCE=$1
 START_DIR=$2
 
 if [ -z "$REFERENCE" ]; then
-  echo "First argument must be not empty string!"
+  echo "First argument must be not an empty string!"
   exit 1
 fi
 

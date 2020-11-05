@@ -5,7 +5,7 @@
 #ifndef SIAD_IBATTERY_H
 #define SIAD_IBATTERY_H
 
-#include "./IRechargeable.h"
+class IRechargeable;
 
 class IBattery {
 public:
@@ -16,6 +16,8 @@ public:
     virtual void spendPower(int value) = 0;
 
     virtual const float getVoltage() = 0;
+
+    virtual ~IBattery() {};
 };
 
 #endif //SIAD_IBATTERY_H

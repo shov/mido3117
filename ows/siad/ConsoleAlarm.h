@@ -10,7 +10,7 @@
 
 using namespace std;
 
-class ConsoleAlarm : IAlarming {
+class ConsoleAlarm : public IAlarming {
 public:
     void sendAlarm(string message) override;
 };

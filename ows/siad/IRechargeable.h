@@ -5,7 +5,7 @@
 #ifndef SIAD_IRECHARGEABLE_H
 #define SIAD_IRECHARGEABLE_H
 
-#include "IBattery.h"
+class IBattery;
 
 class IRechargeable {
 public:

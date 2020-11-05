@@ -12,6 +12,7 @@ using namespace std;
 class IAlarming {
 public:
     virtual void sendAlarm(string message) = 0;
+    virtual ~IAlarming(){};
 };
 
 

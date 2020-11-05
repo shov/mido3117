@@ -5,42 +5,54 @@
 #ifndef SIAD_FIREDETECTOR_H
 #define SIAD_FIREDETECTOR_H
 
+#include <vector>
 #include "IRechargeable.h"
 #include "BatteryAAA.h"
 #include "AirSip.h"
 #include "IAlarming.h"
 
-class FireDetector : IRechargeable {
+typedef struct ID_REPO {
+    int ids[100]{};
+    int top = 0;
+    const int max = 100;
+} ID_REPO;
+
+class FireDetector : public IRechargeable {
 public:
+    enum STATUS {
+        OK, NO_POWER
+    };
+
     FireDetector(int id);
 
     int getId();
 
-    int getStatus();
+    STATUS getStatus();
 
     void setBattery(IBattery *battery) override;
 
-    IBattery* removeBattery() override;
+    IBattery *removeBattery() override;
 
-    void analyzeAir(AirSip* airSip);
+    void analyzeAir(AirSip *airSip);
 
-    static FireDetector* build();
+    ~FireDetector();
 
-    ~ FireDetector();
+    static FireDetector *build();
 
 private:
     //A hundred is supposed to be enough for the demo program
-    static int registeredDetectors[100];
+    static ID_REPO registeredDetectors;
 
     const int COST_OF_ANALYZE = 5;
     const int COST_OF_ALARM = 10;
     const int THRESHOLD_SMOKE = 15;
-    
+
     int id;
-    enum STATUS {OK, NO_POWER};
     STATUS status;
-    IAlarming* alarm;
-    IBattery* power;
+    IAlarming *alarm;
+    IBattery *power;
+
+    static int idGenerator();
 };
 
 

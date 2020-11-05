@@ -8,7 +8,7 @@
 #include "IBattery.h"
 #include "IRechargeable.h"
 
-class BatteryAAA : IBattery {
+class BatteryAAA : public IBattery {
 public:
     constexpr static const float VOLTAGE = 1.25;
 

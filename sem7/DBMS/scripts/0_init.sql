@@ -27,8 +27,10 @@ CREATE TABLE IF NOT EXISTS movies (
 
 CREATE TABLE IF NOT EXISTS movie_stats (
     id       BIGSERIAL PRIMARY KEY,
-    movie_id BIGINT REFERENCES movies(id) ON DELETE CASCADE,
-    name     TEXT NOT NULL,
+    movie_id BIGINT REFERENCES movies(id)
+        ON DELETE CASCADE NOT NULL,
+
+    name     TEXT         NOT NULL,
     value    NUMERIC(12, 2),
     UNIQUE (movie_id, name)
 );
@@ -105,18 +107,24 @@ CREATE TABLE IF NOT EXISTS cinemas (
 
 CREATE TABLE IF NOT EXISTS cinema_halls (
     id              BIGSERIAL PRIMARY KEY,
-    cinema_id       BIGINT REFERENCES cinemas(id) ON DELETE CASCADE,
+    cinema_id       BIGINT REFERENCES cinemas(id)
+        ON DELETE CASCADE NOT NULL,
+
     name            TEXT,
-    acoustic_system TEXT NOT NULL,
-    wide_screen     BOOLEAN DEFAULT (TRUE)
+    acoustic_system TEXT  NOT NULL,
+    wide_screen     BOOLEAN DEFAULT (TRUE),
+    UNIQUE (cinema_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS hall_seat_groups (
     id             BIGSERIAL PRIMARY KEY,
-    cinema_hall_id BIGINT REFERENCES cinema_halls(id) ON DELETE CASCADE,
-    name           TEXT NOT NULL,
-    price_mod      REAL NOT NULL CHECK ( price_mod > 0),
-    amount         INT  NOT NULL CHECK ( amount >= 0 )
+    cinema_hall_id BIGINT REFERENCES cinema_halls(id)
+        ON DELETE CASCADE NOT NULL,
+
+    name           TEXT   NOT NULL,
+    price_mod      REAL   NOT NULL CHECK ( price_mod > 0),
+    amount         INT    NOT NULL CHECK ( amount >= 0 ),
+    UNIQUE (cinema_hall_id, name)
 );
 
 DO
@@ -261,4 +269,208 @@ CALL fill_cinema(
                 ]::HALL_SEAT_GROUPS_DATA[]
                 )
             ]::HALL_DATA[]
+    );
+
+CREATE TABLE IF NOT EXISTS sessions (
+    id             BIGSERIAL PRIMARY KEY,
+    cinema_hall_id BIGINT REFERENCES cinema_halls(id)
+        ON DELETE CASCADE                      NOT NULL,
+
+    movie_id       BIGINT REFERENCES movies(id)
+        ON DELETE CASCADE                      NOT NULL,
+
+    scheduled_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    base_price     NUMERIC(12, 2)              NOT NULL CHECK ( base_price > 0 )
+);
+
+CREATE UNIQUE INDEX
+    IF NOT EXISTS
+    sessions_hall_schedule_unique ON sessions(
+                                              cinema_hall_id,
+                                              date_trunc('hour', scheduled_at)
+    );
+
+CREATE TABLE IF NOT EXISTS sold_ticket_groups (
+    id                 BIGSERIAL PRIMARY KEY,
+    hall_seat_group_id BIGINT REFERENCES hall_seat_groups(id) ON DELETE SET NULL,
+    session_id         BIGINT REFERENCES sessions(id) ON DELETE SET NULL,
+    discount_mod       REAL   NOT NULL CHECK ( discount_mod > 0 ),
+    amount             INT    NOT NULL CHECK ( amount > 0 )
+);
+
+CREATE OR REPLACE FUNCTION validate_sold_ticket_group()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql AS
+$$
+DECLARE
+    free_seats INT;
+    took_seats INT;
+BEGIN
+    IF NEW.hall_seat_group_id IS NOT NULL
+        AND NOT EXISTS(SELECT * FROM hall_seat_groups WHERE id = NEW.hall_seat_group_id)
+    THEN
+        RAISE EXCEPTION 'To have sold tickets for a seat group it must exist!';
+    END IF;
+    IF NEW.session_id IS NOT NULL
+        AND NOT EXISTS(SELECT * FROM sessions WHERE id = NEW.session_id)
+    THEN
+        RAISE EXCEPTION 'To have sold tickets for a session it must exist!';
+    END IF;
+
+    IF NEW.hall_seat_group_id IS NOT NULL AND NEW.session_id IS NOT NULL
+    THEN
+        free_seats := (SELECT amount FROM hall_seat_groups WHERE id = NEW.hall_seat_group_id);
+        took_seats := (
+            SELECT sum(amount)
+            FROM sold_ticket_groups e
+            WHERE e.session_id = NEW.session_id AND e.hall_seat_group_id = NEW.hall_seat_group_id
+        );
+
+        IF took_seats IS NOT NULL AND NEW.amount > free_seats - took_seats
+        THEN
+            RAISE EXCEPTION 'Not enough free seats!';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS validate_sold_ticket_group_trigger ON sold_ticket_groups;
+CREATE TRIGGER validate_sold_ticket_group_trigger
+    BEFORE INSERT OR UPDATE
+    ON sold_ticket_groups
+    FOR EACH ROW
+EXECUTE PROCEDURE validate_sold_ticket_group();
+
+
+CREATE OR REPLACE PROCEDURE fill_session(in_movie_name   TEXT,
+                                         in_cinema_name  TEXT,
+                                         in_hall_name    TEXT,
+                                         in_scheduled_at TIMESTAMP WITHOUT TIME ZONE,
+                                         in_base_price   NUMERIC,
+                                         in_buy_tickets  INT)
+    LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    session_ret_id  BIGINT;
+    target_movie_id BIGINT;
+    target_hall_id  BIGINT;
+    hall_group_row  RECORD;
+    curr_audience   NUMERIC;
+BEGIN
+    target_movie_id := (SELECT id FROM movies WHERE name = in_movie_name);
+    IF target_movie_id IS NULL
+    THEN
+        RAISE EXCEPTION 'Unknown movie!';
+    END IF;
+
+    target_hall_id := (
+        SELECT ch.id
+        FROM cinema_halls ch
+                 JOIN cinemas c ON c.id = ch.cinema_id
+        WHERE c.name = in_cinema_name AND ch.name = in_hall_name
+    );
+
+    IF target_hall_id IS NULL
+    THEN
+        RAISE EXCEPTION 'Unknown hall or belongs not to the given cinema!';
+    END IF;
+
+    INSERT INTO sessions (cinema_hall_id, movie_id, scheduled_at, base_price)
+    VALUES (target_hall_id, target_movie_id, in_scheduled_at, in_base_price)
+    ON CONFLICT DO NOTHING
+    RETURNING id INTO session_ret_id;
+
+    IF session_ret_id IS NULL
+    THEN
+        RETURN;
+    END IF;
+
+    FOR hall_group_row IN
+        SELECT * FROM hall_seat_groups g WHERE g.cinema_hall_id = target_hall_id
+        LOOP
+            INSERT INTO sold_ticket_groups (hall_seat_group_id, session_id, discount_mod, amount)
+            VALUES (hall_group_row.id, session_ret_id, 1, in_buy_tickets)
+            ON CONFLICT DO NOTHING;
+
+            curr_audience := (
+                SELECT value
+                FROM movie_stats s
+                WHERE s.movie_id = target_movie_id AND s.name = 'audience'
+            );
+
+            IF curr_audience IS NOT NULL AND curr_audience < 18
+            THEN
+                INSERT INTO sold_ticket_groups (hall_seat_group_id, session_id, discount_mod, amount)
+                VALUES (hall_group_row.id, session_ret_id, 0.5, in_buy_tickets)
+                ON CONFLICT DO NOTHING;
+            END IF;
+        END LOOP;
+END
+$$;
+
+CALL fill_session(
+        'Побег из Шоушенка',
+        'Сентябрь',
+        'Кинозал',
+        TIMESTAMP '2021-01-09 13:00:00',
+        5.0,
+        10
+    );
+
+CALL fill_session(
+        'Скотт Пилигрим против всех',
+        'Сентябрь',
+        'Кинозал',
+        TIMESTAMP '2021-01-09 15:00:00',
+        5.0,
+        10
+    );
+
+CALL fill_session(
+        'Скотт Пилигрим против всех',
+        'Дом Кино',
+        'Киноконцертный зал',
+        TIMESTAMP '2021-01-09 15:00:00',
+        4.5,
+        10
+    );
+
+CALL fill_session(
+        'Криминальное чтиво',
+        'VOKA CINEMA by Silver Screen',
+        '№1',
+        TIMESTAMP '2021-01-10 21:00:00',
+        6,
+        30
+    );
+
+CALL fill_session(
+        'Иван Васильевич меняет профессию',
+        'VOKA CINEMA by Silver Screen',
+        '№2',
+        TIMESTAMP '2021-01-10 21:00:00',
+        6,
+        30
+    );
+
+CALL fill_session(
+        'Интерстеллар',
+        'VOKA CINEMA by Silver Screen',
+        '№3',
+        TIMESTAMP '2021-01-10 21:00:00',
+        6,
+        30
+    );
+
+
+CALL fill_session(
+        'Зеленая миля',
+        'VOKA CINEMA by Silver Screen',
+        '№4',
+        TIMESTAMP '2021-01-10 21:00:00',
+        6,
+        3
     );

@@ -306,25 +306,23 @@ DECLARE
     free_seats INT;
     took_seats INT;
 BEGIN
-    IF NEW.hall_seat_group_id IS NOT NULL
-        AND NOT EXISTS(SELECT * FROM hall_seat_groups WHERE id = NEW.hall_seat_group_id)
-    THEN
-        RAISE EXCEPTION 'To have sold tickets for a seat group it must exist!';
-    END IF;
-    IF NEW.session_id IS NOT NULL
-        AND NOT EXISTS(SELECT * FROM sessions WHERE id = NEW.session_id)
-    THEN
-        RAISE EXCEPTION 'To have sold tickets for a session it must exist!';
-    END IF;
-
     IF NEW.hall_seat_group_id IS NOT NULL AND NEW.session_id IS NOT NULL
     THEN
+        IF NOT EXISTS(SELECT * FROM hall_seat_groups WHERE id = NEW.hall_seat_group_id)
+        THEN
+            RAISE EXCEPTION 'To have sold tickets for a seat group it must exist!';
+        END IF;
+
+        IF NOT EXISTS(SELECT * FROM sessions WHERE id = NEW.session_id)
+        THEN
+            RAISE EXCEPTION 'To have sold tickets for a session it must exist!';
+        END IF;
+
         free_seats := (SELECT amount FROM hall_seat_groups WHERE id = NEW.hall_seat_group_id);
         took_seats := (
             SELECT sum(amount)
             FROM sold_ticket_groups e
-            WHERE e.session_id = NEW.session_id AND e.hall_seat_group_id = NEW.hall_seat_group_id
-            AND e.id <> NEW.id
+            WHERE e.session_id = NEW.session_id AND e.hall_seat_group_id = NEW.hall_seat_group_id AND e.id <> NEW.id
         );
 
         IF took_seats IS NOT NULL AND NEW.amount > free_seats - took_seats

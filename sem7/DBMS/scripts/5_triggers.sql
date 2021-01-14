@@ -30,7 +30,7 @@ BEGIN
         INSERT INTO log_events
             (object_name, event_name, target_id, row_data, created_at, user_name)
         VALUES (TG_ARGV[0], TG_OP, NULL, NULL, now(), user);
-        RETURN NEW;
+        RETURN NULL;
     END IF;
     RETURN NULL;
 END;
@@ -66,3 +66,42 @@ WHERE cinema_name = 'МИР';
 
 CALL actualize_posters_for_date(DATE '2021-01-10');
 
+CREATE OR REPLACE FUNCTION cinema_destructor()
+    RETURNS TRIGGER
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    IF (TG_OP = 'DELETE' )
+    THEN
+        DELETE FROM posters WHERE cinema_name = OLD.name;
+        RETURN OLD;
+    ELSIF (TG_OP = 'TRUNCATE')
+    THEN
+        DELETE FROM posters WHERE cinema_name IN (SELECT name FROM cinemas);
+        RETURN NULL;
+    END IF;
+    RETURN NULL;
+END
+$$;
+
+DROP TRIGGER IF EXISTS cinema_destructor_row_trigger ON cinemas;
+CREATE TRIGGER cinema_destructor_row_trigger
+    BEFORE DELETE
+    ON cinemas
+    FOR EACH ROW
+EXECUTE PROCEDURE cinema_destructor();
+
+DROP TRIGGER IF EXISTS cinema_destructor_statement_trigger ON cinemas;
+CREATE TRIGGER cinema_destructor_statement_trigger
+    BEFORE TRUNCATE
+    ON cinemas
+    FOR STATEMENT
+EXECUTE PROCEDURE cinema_destructor();
+
+DELETE FROM cinemas WHERE name = 'Дом Кино';
+TRUNCATE cinemas CASCADE;
+
+SELECT 'cinemas' AS name, count(*) rows_count FROM cinemas
+    UNION
+SELECT 'posters' AS name, count(*) rows_count FROM posters

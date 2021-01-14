@@ -324,6 +324,7 @@ BEGIN
             SELECT sum(amount)
             FROM sold_ticket_groups e
             WHERE e.session_id = NEW.session_id AND e.hall_seat_group_id = NEW.hall_seat_group_id
+            AND e.id <> NEW.id
         );
 
         IF took_seats IS NOT NULL AND NEW.amount > free_seats - took_seats

@@ -45,7 +45,8 @@ BEGIN
         LIMIT 1
     );
 
-    IF cinema_name IS NULL THEN
+    IF cinema_name IS NULL
+    THEN
         RETURN NULL;
     END IF;
 

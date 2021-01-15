@@ -24,3 +24,16 @@ services:
         - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       networks:
         - backend
+
+  ### MS SQL ###########################################
+    mssql:
+      image: microsoft/mssql-server-linux:2017-latest
+      container_name: mssql
+      volumes:
+      - ./data/mssql-data:/var/opt/mssql
+      - ./data/sql1data/backup:/var/opt/mssql/backup
+      environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=secretSecret1!
+      ports:
+      - "1433:1433"

@@ -24,7 +24,7 @@ IF @p_number IS NULL
 SELECT @j_number = J_number FROM J WHERE name = @j_name;
 
 IF @j_number IS NULL
-        THROW 50002, 'No such J name found!', 16;
+        THROW 50003, 'No such J name found!', 16;
 
 INSERT INTO SPJ (S_number, P_number, J_number, amount, created_at)
 VALUES (@s_number, @p_number, @j_number, @amount, getutcdate());

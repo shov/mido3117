@@ -35,5 +35,5 @@ public interface IConvertingFigure {
      * @param value
      * @return converted value
      */
-    public String convert(int fromKey, int toKey, String value) throws ConversionException;
+    public String convert(String value, int fromKey, int toKey) throws ConversionException;
 }

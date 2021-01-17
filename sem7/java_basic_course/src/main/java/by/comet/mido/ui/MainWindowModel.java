@@ -162,8 +162,8 @@ class MainWindowModel {
      * @return converted value
      * @throws Exception
      */
-    public String convertFigure(String kind, int fromKey, int toKey, String value) throws Exception {
+    public String convertFigure(String value, String kind, int fromKey, int toKey) throws Exception {
         IConvertingFigure repo = getFigureRepoByKind(kind);
-        return repo.convert(fromKey, toKey, value);
+        return repo.convert(value, fromKey, toKey);
     }
 }

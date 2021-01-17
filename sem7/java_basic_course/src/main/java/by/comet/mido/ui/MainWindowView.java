@@ -296,10 +296,10 @@ class MainWindowView extends JFrame {
         StateTextField slaveField = getSlaveField();
 
         slaveField.setText(m_model.convertFigure(
+                masterField.getText(),
                 masterSelected.getKind(),
                 masterSelected.getKey(),
-                slaveSelected.getKey(),
-                masterField.getText()
+                slaveSelected.getKey()
         ));
         updateFieldText(slaveField);
     }

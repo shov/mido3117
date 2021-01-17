@@ -106,19 +106,12 @@ class MainWindowView extends JFrame {
             //Swap combos
             JComboBox masterCombo = getMasterCombo();
             JComboBox slaveCombo = getSlaveCombo();
-            ComboItem masterSelected = (ComboItem) masterCombo.getSelectedItem();
-            ComboItem slaveSelected = (ComboItem) slaveCombo.getSelectedItem();
-
-            if (masterSelected != null && slaveSelected != null) {
-                masterCombo.setSelectedIndex(findComboItemPosition(masterCombo, slaveSelected.toString()));
-                slaveCombo.setSelectedIndex(findComboItemPosition(slaveCombo, masterSelected.toString()));
-            }
 
             //(Re)populate combos
             populateMasterCombo(m_model.getMasterComboItems());
             populateSlaveCombo(m_model.getSlaveComboItems((ComboItem) getMasterCombo().getSelectedItem()));
 
-            //Swap fields
+            //Update fields
             StateTextField masterField = getMasterField();
             StateTextField slaveField = getSlaveField();
 
@@ -242,7 +235,7 @@ class MainWindowView extends JFrame {
             return;
         }
 
-        //Swap combos
+        //Get combos
         JComboBox masterCombo = getMasterCombo();
         JComboBox slaveCombo = getSlaveCombo();
 

@@ -56,7 +56,7 @@ public class FigureMass implements IConvertingFigure {
         }
 
         if (!m_valueRegExPattern.matcher(value.trim()).matches()) {
-            return String.valueOf(Double.parseDouble("0")); //Initial
+            return fixLeadsNTrails("0"); //Initial
         }
 
         return fixLeadsNTrails(value);
@@ -73,8 +73,7 @@ public class FigureMass implements IConvertingFigure {
     private String fixLeadsNTrails(String value) {
         double numeric = Double.parseDouble(value.trim());
         String clean = m_big_double_formatter.format(numeric);
-        clean = clean
-                .replaceAll("^([0]*)(([1-9]|0)[0-9]*\\.([0-9]*[1-9]|0))([0]*)$", "$2");
+        clean = cutOffZeros(clean);
 
         if (m_valueRegExPatternNoDot.matcher(value).matches()) {
             return clean.replaceAll("\\.0$", "");

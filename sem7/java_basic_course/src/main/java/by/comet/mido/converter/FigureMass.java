@@ -82,4 +82,44 @@ public class FigureMass implements IConvertingFigure {
 
         return clean;
     }
+
+    public String convert(int fromKey, int toKey, String value) throws ConversionException {
+        if(fromKey < 0 || fromKey > KEY.values().length) {
+            throw new ConversionException("Unexpected, wrong from key!");
+        }
+
+        if(toKey < 0 || toKey > KEY.values().length) {
+            throw new ConversionException("Unexpected, wrong to key!");
+        }
+
+        double numericFrom = Double.parseDouble(fixValue(value));
+        return String.valueOf(convertOnMg(numericFrom, KEY.values()[fromKey], KEY.values()[toKey]));
+    }
+
+    private double convertOnMg(double source, KEY from, KEY to) {
+        //g -> 1000 mg
+        //kg -> 1000 g
+        //t -> 1000 kg
+
+        double multiplier = 1.0d;
+        int step = 1000;
+        int diff = from.ordinal() - to.ordinal();
+        boolean increase = diff > 0;
+
+        if(diff == 0) {
+            return source;
+        }
+
+        diff = Math.abs(diff);
+
+        for (int i = 0; i < diff; i++) {
+            if(increase) {
+                multiplier *= step;
+            } else {
+                multiplier /= step;
+            }
+        }
+
+        return source * multiplier;
+    }
 }

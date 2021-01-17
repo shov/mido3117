@@ -28,4 +28,12 @@ public interface IConvertingFigure {
      * @return corrected value, fallback if not valid
      */
     public String fixValue(String value, String fallbackValue);
+
+    /**
+     * @param fromKey
+     * @param toKey
+     * @param value
+     * @return converted value
+     */
+    public String convert(int fromKey, int toKey, String value) throws ConversionException;
 }

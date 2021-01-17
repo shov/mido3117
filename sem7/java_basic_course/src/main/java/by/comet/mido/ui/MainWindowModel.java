@@ -135,7 +135,6 @@ class MainWindowModel {
      * @return valid value
      */
     public String fixValueForItem(String kind, String value) throws Exception {
-        System.out.println("fix1: | " + value);
         IConvertingFigure repo = getFigureRepoByKind(kind);
         return repo.fixValue(value);
     }
@@ -149,16 +148,22 @@ class MainWindowModel {
      * @return valid value
      */
     public String fixValueForItem(String kind, String value, String fallbackValue) throws Exception {
-
         IConvertingFigure repo = getFigureRepoByKind(kind);
-        String res = repo.fixValue(value, fallbackValue);
+        return repo.fixValue(value, fallbackValue);
+    }
 
-        System.out.println(
-                "fix2: kind " + kind + " | "
-                        + "| " + value + "(" + value.length() + ") | "
-                        + fallbackValue + "(" + fallbackValue.length() + ") | "
-                        + res + "(" + res.length() + ") | ");
-
-        return res;
+    /**
+     * Perform converting
+     *
+     * @param kind
+     * @param fromKey
+     * @param toKey
+     * @param value
+     * @return converted value
+     * @throws Exception
+     */
+    public String convertFigure(String kind, int fromKey, int toKey, String value) throws Exception {
+        IConvertingFigure repo = getFigureRepoByKind(kind);
+        return repo.convert(fromKey, toKey, value);
     }
 }

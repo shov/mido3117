@@ -7,7 +7,7 @@ import javax.swing.*;
  * and a kind
  */
 public class StateTextField extends JTextField {
-    private final String DEFAULT_TEXT = "";
+    public static final String DEFAULT_TEXT = "#DEFAULT#";
     private String m_lastText = DEFAULT_TEXT;
 
     private String m_kind = null;
@@ -36,6 +36,6 @@ public class StateTextField extends JTextField {
 
     public StateTextField() {
         super();
-        this.getDocument().putProperty("stateTextField", this);
+        setText(DEFAULT_TEXT);
     }
 }

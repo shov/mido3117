@@ -1,5 +1,6 @@
 package by.comet.mido.ui;
 
+import javax.swing.*;
 import java.awt.event.*;
 
 /**
@@ -20,13 +21,6 @@ class MainWindowController {
     private void setListeners() {
         m_view.addDirectionSwapListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                try {
-                    m_view.convert();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    m_view.showError("Something goes wrong X0.3");
-                }
-
                 m_model.swapDirection();
                 try {
                     m_view.refreshDirection();
@@ -34,6 +28,13 @@ class MainWindowController {
                     ex.printStackTrace();
                     m_model.swapDirection(); //back
                     m_view.showError("Something goes wrong X0");
+                }
+
+                try {
+                    m_view.convert();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    m_view.showError("Something goes wrong X0.3");
                 }
             }
         });
@@ -82,7 +83,7 @@ class MainWindowController {
         m_view.addComboChangeListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    m_view.refreshState();
+                    m_view.refreshOfChangedCombo((JComboBox) e.getSource());
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     m_view.showError("Something goes wrong X2");
@@ -90,7 +91,7 @@ class MainWindowController {
             }
         });
 
-        m_view.addConverListener(new ActionListener() {
+        m_view.addConvertListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
                     m_view.convert();

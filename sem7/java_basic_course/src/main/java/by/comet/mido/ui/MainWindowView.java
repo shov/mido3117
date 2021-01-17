@@ -24,6 +24,9 @@ class MainWindowView extends JFrame {
     private static final String DIRECTION_LR = "→";
     private static final String DIRECTION_RL = "←";
 
+    private boolean m_refresh_mutex = false;
+
+    //TODO Consider to remove model from view
     public MainWindowView(MainWindowModel model) throws Exception {
         super("Converter");
 
@@ -64,6 +67,10 @@ class MainWindowView extends JFrame {
         add(m_rCombo, "growx, wrap");
         add(copyLabel, "span 3");
 
+        //Set initial text to fields
+        m_lField.setText(StateTextField.DEFAULT_TEXT);
+        m_rField.setText(StateTextField.DEFAULT_TEXT);
+
         //Main form state trigger
         //Init direction, populate items, text fields
         refreshDirection();
@@ -88,45 +95,46 @@ class MainWindowView extends JFrame {
     //UI logic
 
     /**
+     * TODO move states ops to controller-model
      * Refresh converting direction
      * re-populate combos, swap fields
      */
     public void refreshDirection() throws Exception {
-        //Swap combos
-        JComboBox masterCombo = getMasterCombo();
-        JComboBox slaveCombo = getSlaveCombo();
-        ComboItem masterSelected = (ComboItem) masterCombo.getSelectedItem();
-        ComboItem slaveSelected = (ComboItem) slaveCombo.getSelectedItem();
+        m_refresh_mutex = true;
+        try {
+            //Swap combos
+            JComboBox masterCombo = getMasterCombo();
+            JComboBox slaveCombo = getSlaveCombo();
+            ComboItem masterSelected = (ComboItem) masterCombo.getSelectedItem();
+            ComboItem slaveSelected = (ComboItem) slaveCombo.getSelectedItem();
 
-        if (masterSelected != null && slaveSelected != null) {
-            masterCombo.setSelectedIndex(findComboItemPosition(masterCombo, slaveSelected.toString()));
-            slaveCombo.setSelectedIndex(findComboItemPosition(slaveCombo, masterSelected.toString()));
+            if (masterSelected != null && slaveSelected != null) {
+                masterCombo.setSelectedIndex(findComboItemPosition(masterCombo, slaveSelected.toString()));
+                slaveCombo.setSelectedIndex(findComboItemPosition(slaveCombo, masterSelected.toString()));
+            }
+
+            //(Re)populate combos
+            populateMasterCombo(m_model.getMasterComboItems());
+            populateSlaveCombo(m_model.getSlaveComboItems((ComboItem) getMasterCombo().getSelectedItem()));
+
+            //Swap fields
+            StateTextField masterField = getMasterField();
+            StateTextField slaveField = getSlaveField();
+
+            //Set field kinds
+            masterField.setKind(((ComboItem) masterCombo.getSelectedItem()).getKind());
+            slaveField.setKind(((ComboItem) slaveCombo.getSelectedItem()).getKind());
+
+            //Fix texts
+            updateFieldText(masterField);
+            updateFieldText(slaveField);
+
+            //Set direction caption
+            m_directionBt.setText(
+                    m_model.getCurrDirection() == EConvertDirection.RIGHT ? DIRECTION_LR : DIRECTION_RL);
+        } finally {
+            m_refresh_mutex = false;
         }
-
-        //(Re)populate combos
-        populateMasterCombo(m_model.getMasterComboItems());
-        populateSlaveCombo(m_model.getSlaveComboItems((ComboItem) getMasterCombo().getSelectedItem()));
-
-        //Swap fields
-        StateTextField masterField = getMasterField();
-        StateTextField slaveField = getSlaveField();
-
-        //Set field kinds
-        masterField.setKind(((ComboItem) masterCombo.getSelectedItem()).getKind());
-        slaveField.setKind(((ComboItem) slaveCombo.getSelectedItem()).getKind());
-
-        //Swap texts
-        String textBuff = masterField.getText();
-        masterField.setText(slaveField.getText());
-        slaveField.setText(textBuff);
-
-        //Fix texts
-        updateFieldText(masterField);
-        updateFieldText(slaveField);
-
-        //Set direction caption
-        m_directionBt.setText(
-                m_model.getCurrDirection() == EConvertDirection.RIGHT ? DIRECTION_LR : DIRECTION_RL);
     }
 
     /**
@@ -150,11 +158,11 @@ class MainWindowView extends JFrame {
     }
 
     private JComboBox getMasterCombo() {
-        return m_model.getCurrDirection() == EConvertDirection.RIGHT ? m_rCombo : m_lCombo;
+        return m_model.getCurrDirection() == EConvertDirection.RIGHT ? m_lCombo : m_rCombo;
     }
 
     private JComboBox getSlaveCombo() {
-        return m_model.getCurrDirection() == EConvertDirection.RIGHT ? m_lCombo : m_rCombo;
+        return m_model.getCurrDirection() == EConvertDirection.RIGHT ? m_rCombo : m_lCombo;
     }
 
     /**
@@ -207,11 +215,11 @@ class MainWindowView extends JFrame {
     }
 
     private StateTextField getMasterField() {
-        return m_model.getCurrDirection() == EConvertDirection.RIGHT ? m_rField : m_lField;
+        return m_model.getCurrDirection() == EConvertDirection.RIGHT ? m_lField : m_rField;
     }
 
     private StateTextField getSlaveField() {
-        return m_model.getCurrDirection() == EConvertDirection.RIGHT ? m_lField : m_rField;
+        return m_model.getCurrDirection() == EConvertDirection.RIGHT ? m_rField : m_lField;
     }
 
     public void updateFieldText(StateTextField field) throws Exception {
@@ -220,36 +228,80 @@ class MainWindowView extends JFrame {
         );
     }
 
-    public void refreshState() throws Exception {
+    /**
+     * TODO move states ops to controller-model
+     * Refresh all the things related to changes in combos
+     *
+     * @param combo
+     * @throws Exception
+     */
+    public void refreshOfChangedCombo(JComboBox combo) throws Exception {
+        //Skip processing if it's refreshing by change direction
+        if (m_refresh_mutex) {
+            return;
+        }
+
         //Swap combos
         JComboBox masterCombo = getMasterCombo();
         JComboBox slaveCombo = getSlaveCombo();
+
         ComboItem masterSelected = (ComboItem) masterCombo.getSelectedItem();
         ComboItem slaveSelected = (ComboItem) slaveCombo.getSelectedItem();
 
-        if (masterSelected != null && slaveSelected != null) {
-            masterCombo.setSelectedIndex(findComboItemPosition(masterCombo, slaveSelected.toString()));
-            slaveCombo.setSelectedIndex(findComboItemPosition(slaveCombo, masterSelected.toString()));
+        if (masterSelected == null || slaveSelected == null) {
+            throw new Exception("Unexpected! some of selected is null!");
         }
-
-        //(Re)populate slave
-        populateSlaveCombo(m_model.getSlaveComboItems((ComboItem) getMasterCombo().getSelectedItem()));
 
         //Fix fields
         StateTextField masterField = getMasterField();
         StateTextField slaveField = getSlaveField();
 
+        if (masterCombo == combo) {
+            boolean mutex_prev = m_refresh_mutex;
+            m_refresh_mutex = true;
+
+            //(Re)populate slave
+            populateSlaveCombo(m_model.getSlaveComboItems(masterSelected));
+
+            m_refresh_mutex = mutex_prev;
+        }
+
         //Set field kinds
-        masterField.setKind(((ComboItem) masterCombo.getSelectedItem()).getKind());
-        slaveField.setKind(((ComboItem) slaveCombo.getSelectedItem()).getKind());
+        masterField.setKind(masterSelected.getKind());
+        slaveField.setKind(slaveSelected.getKind());
 
         //Fix texts
         updateFieldText(masterField);
         updateFieldText(slaveField);
     }
 
-    public void convert() {
-        System.out.println("Convert!");
+    /**
+     * TODO move states ops to controller-model
+     * Main action
+     *
+     * @throws Exception
+     */
+    public void convert() throws Exception {
+        JComboBox masterCombo = getMasterCombo();
+        JComboBox slaveCombo = getSlaveCombo();
+
+        ComboItem masterSelected = (ComboItem) masterCombo.getSelectedItem();
+        ComboItem slaveSelected = (ComboItem) slaveCombo.getSelectedItem();
+
+        if (masterSelected == null && slaveSelected == null) {
+            throw new Exception("Unexpected! some of selected is null!");
+        }
+
+        StateTextField masterField = getMasterField();
+        StateTextField slaveField = getSlaveField();
+
+        slaveField.setText(m_model.convertFigure(
+                masterSelected.getKind(),
+                masterSelected.getKey(),
+                slaveSelected.getKey(),
+                masterField.getText()
+        ));
+        updateFieldText(slaveField);
     }
 
 
@@ -268,7 +320,7 @@ class MainWindowView extends JFrame {
         m_rCombo.addActionListener(listener);
     }
 
-    public void addConverListener(ActionListener listener) {
+    public void addConvertListener(ActionListener listener) {
         m_convertBt.addActionListener(listener);
     }
 

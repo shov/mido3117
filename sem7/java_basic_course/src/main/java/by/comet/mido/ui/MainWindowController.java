@@ -19,38 +19,36 @@ class MainWindowController {
     }
 
     private void setListeners() {
-        m_view.addDirectionSwapListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                m_model.swapDirection();
-                try {
-                    m_view.refreshDirection();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    m_model.swapDirection(); //back
-                    m_view.showError("Something goes wrong X0");
-                }
+        m_view.addDirectionSwapListener(event -> {
+            m_model.swapDirection();
+            try {
+                m_view.refreshDirection();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                m_model.swapDirection(); //back
+                m_view.showError("Something goes wrong X0");
+            }
 
-                try {
-                    m_view.convert();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    m_view.showError("Something goes wrong X0.3");
-                }
+            try {
+                m_view.convert();
+            } catch (Exception e) {
+                e.printStackTrace();
+                m_view.showError("Something goes wrong X0.3");
             }
         });
 
         m_view.addFieldsKeyListener(new KeyListener() {
-            public void keyTyped(KeyEvent e) {
+            public void keyTyped(KeyEvent event) {
             }
 
-            public void keyPressed(KeyEvent e) {
+            public void keyPressed(KeyEvent event) {
             }
 
-            public void keyReleased(KeyEvent e) {
-                StateTextField field = (StateTextField) e.getSource();
-                boolean isEdited = e.getKeyCode() == KeyEvent.VK_DELETE
-                        || e.getKeyCode() == KeyEvent.VK_BACK_SPACE;
-                boolean isNotControl = !Character.isISOControl(e.getKeyCode());
+            public void keyReleased(KeyEvent event) {
+                StateTextField field = (StateTextField) event.getSource();
+                boolean isEdited = event.getKeyCode() == KeyEvent.VK_DELETE
+                        || event.getKeyCode() == KeyEvent.VK_BACK_SPACE;
+                boolean isNotControl = !Character.isISOControl(event.getKeyCode());
 
                 if (isEdited || isNotControl) {
                     int caretPos = field.getCaretPosition();
@@ -66,39 +64,35 @@ class MainWindowController {
                     }
 
                 } else {
-                    e.consume();
+                    event.consume();
                 }
 
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                if (event.getKeyCode() == KeyEvent.VK_ENTER) {
                     try {
                         m_view.convert();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
                         m_view.showError("Something goes wrong X1.3");
                     }
                 }
             }
         });
 
-        m_view.addComboChangeListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    m_view.refreshOfChangedCombo((JComboBox) e.getSource());
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    m_view.showError("Something goes wrong X2");
-                }
+        m_view.addComboChangeListener(event -> {
+            try {
+                m_view.refreshOfChangedCombo((JComboBox) event.getSource());
+            } catch (Exception e) {
+                e.printStackTrace();
+                m_view.showError("Something goes wrong X2");
             }
         });
 
-        m_view.addConvertListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    m_view.convert();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    m_view.showError("Something goes wrong X3");
-                }
+        m_view.addConvertListener(event -> {
+            try {
+                m_view.convert();
+            } catch (Exception e) {
+                e.printStackTrace();
+                m_view.showError("Something goes wrong X3");
             }
         });
     }

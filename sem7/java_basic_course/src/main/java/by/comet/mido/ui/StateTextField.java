@@ -8,6 +8,8 @@ import javax.swing.*;
  */
 public class StateTextField extends JTextField {
     public static final String DEFAULT_TEXT = "#DEFAULT#";
+    public static final String ERROR_TEXT = "#ERROR";
+
     private String m_lastText = DEFAULT_TEXT;
 
     private String m_kind = null;
@@ -26,9 +28,8 @@ public class StateTextField extends JTextField {
 
     @Override
     public void setText(String t) {
-        m_lastText = getText();
-        if (null == m_lastText) {
-            m_lastText = DEFAULT_TEXT;
+        if (!getText().equals(t) && !ERROR_TEXT.equals(t)) {
+            m_lastText = getText();
         }
 
         super.setText(t);

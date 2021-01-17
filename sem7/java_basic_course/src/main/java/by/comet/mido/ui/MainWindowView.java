@@ -1,5 +1,6 @@
 package by.comet.mido.ui;
 
+import by.comet.mido.converter.ConversionMaxValueException;
 import by.comet.mido.converter.EConvertDirection;
 import net.miginfocom.swing.MigLayout;
 
@@ -295,13 +296,20 @@ class MainWindowView extends JFrame {
         StateTextField masterField = getMasterField();
         StateTextField slaveField = getSlaveField();
 
-        slaveField.setText(m_model.convertFigure(
-                masterField.getText(),
-                masterSelected.getKind(),
-                masterSelected.getKey(),
-                slaveSelected.getKey()
-        ));
-        updateFieldText(slaveField);
+        try {
+            String converted = m_model.convertFigure(
+                    masterField.getText(),
+                    masterSelected.getKind(),
+                    masterSelected.getKey(),
+                    slaveSelected.getKey()
+            );
+
+            slaveField.setText(converted);
+            updateFieldText(slaveField);
+        } catch (ConversionMaxValueException e) {
+            slaveField.setText(StateTextField.ERROR_TEXT);
+            showError("Result unfits allowed range!");
+        }
     }
 
 

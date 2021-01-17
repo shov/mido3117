@@ -129,19 +129,7 @@ class MainWindowModel {
 
     /**
      * Fix/Update a value for kind of figure of selected item
-     *
-     * @param kind
-     * @param value
-     * @return valid value
-     */
-    public String fixValueForItem(String kind, String value) throws Exception {
-        IConvertingFigure repo = getFigureRepoByKind(kind);
-        return repo.fixValue(value);
-    }
-
-    /**
-     * Fix/Update a value for kind of figure of selected item
-     *
+     * TODO: switch to common interface
      * @param kind
      * @param value
      * @param fallbackValue
@@ -154,7 +142,7 @@ class MainWindowModel {
 
     /**
      * Perform converting
-     *
+     * TODO switch to common interface
      * @param kind
      * @param fromKey
      * @param toKey

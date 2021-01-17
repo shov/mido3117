@@ -1,9 +1,8 @@
 package by.comet.mido.converter;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.regex.Pattern;
+import java.text.DecimalFormat;
 
 /**
  * Mass (or Weight)
@@ -23,9 +22,9 @@ public class FigureMass implements IConvertingFigure {
     private Figure[] m_figures;
 
     private Pattern m_valueRegExPattern;
-    private Pattern m_valueRegExPatternTrailDot;
-    private Pattern m_valueRegExPatternLeadDot;
     private Pattern m_valueRegExPatternNoDot;
+
+    private DecimalFormat m_big_double_formatter = new DecimalFormat("0.00000000000000000000");
 
     public FigureMass() {
         //Set kind and figures
@@ -40,8 +39,6 @@ public class FigureMass implements IConvertingFigure {
         m_valueRegExPattern = Pattern
                 .compile("^([0-9]{1," + l + "}(\\.[0-9]{1," + l + "}|\\.)?|\\.[0-9]{1," + l + "})$");
 
-        m_valueRegExPatternTrailDot = Pattern.compile("^[0-9]{1," + l + "}\\.$");
-        m_valueRegExPatternLeadDot = Pattern.compile("^\\.[0-9]{1," + l + "}$");
         m_valueRegExPatternNoDot = Pattern.compile("^[0-9]{1," + l + "}$");
     }
 
@@ -74,18 +71,13 @@ public class FigureMass implements IConvertingFigure {
     }
 
     private String fixLeadsNTrails(String value) {
-        String clean = Double.toString(Double.parseDouble(value.trim()));
-
-        if (m_valueRegExPatternTrailDot.matcher(value).matches()) {
-            return clean.replace(".0", ".");
-        }
-
-        if (m_valueRegExPatternLeadDot.matcher(value).matches()) {
-            return clean.replace("0.", ".");
-        }
+        double numeric = Double.parseDouble(value.trim());
+        String clean = m_big_double_formatter.format(numeric);
+        clean = clean
+                .replaceAll("^([0]*)(([1-9]|0)[0-9]*\\.([0-9]*[1-9]|0))([0]*)$", "$2");
 
         if (m_valueRegExPatternNoDot.matcher(value).matches()) {
-            return clean.replace(".0", "");
+            return clean.replaceAll("\\.0$", "");
         }
 
         return clean;
@@ -103,48 +95,76 @@ public class FigureMass implements IConvertingFigure {
         String fixed = fixValue(value);
 
         //Since we support empty value, make it 0 if it came
-        double numericFrom = Double.parseDouble(fixed.length() > 0 ? fixed : "0");
-        double computed = compute(numericFrom, KEY.values()[fromKey], KEY.values()[toKey]);
-
-        BigDecimal computedWrapped = new BigDecimal(computed, new MathContext(20, RoundingMode.HALF_UP));
-
-        String whole = computedWrapped.toPlainString();
-        String fraction = ".0";
-
-        if (whole.indexOf('.') >= 0) {
-            fraction = whole.substring(whole.indexOf('.'))
-                    .replaceAll("^\\.([0-9]{" + FRACTION_MAX_LEN + "})(.+)$", ".$1")
-                    .replaceAll("0+$", "");
-
-            whole = whole.substring(0, whole.indexOf('.'));
+        if (fixed.length() < 1) {
+            fixed = "0.0";
         }
-        return whole + fraction;
-    }
 
-    protected double compute(double source, KEY from, KEY to) {
-        //g -> 1000 mg
-        //kg -> 1000 g
-        //t -> 1000 kg
+        fixed = fixed
+                .replaceAll("^\\.", "0.")
+                .replaceAll("\\.$", ".0")
+                .replaceAll("^([^.]+)$", "$1.0");
 
-        BigDecimal multiplier = new BigDecimal("1.0");
-        BigDecimal step = new BigDecimal("1000");
-        int diff = from.ordinal() - to.ordinal();
+        int diff = fromKey - toKey;
         boolean increase = diff > 0;
 
         if (diff == 0) {
-            return source;
+            return fixed.replaceAll("\\.0$", "");
         }
 
-        diff = Math.abs(diff);
+        int STEP = 3; // 1kg -> 1000g
+        diff = Math.abs(diff) * STEP;
 
-        for (int i = 0; i < diff; i++) {
-            if (increase) {
-                multiplier = multiplier.multiply(step);
-            } else {
-                multiplier = multiplier.divide(step);
+        char[] spaceContent = new char[FRACTION_MAX_LEN];
+        Arrays.fill(spaceContent, '0');
+        String space = new String(spaceContent);
+
+        fixed = increase ? fixed + space : space + fixed;
+
+        int indexOfDot = fixed.indexOf('.');
+
+        if (indexOfDot < 0) {
+            throw new ConversionException("Unexpected, don must be in the fixed value!");
+        }
+
+        int newDotIndex = increase
+                //add extra 1 because of old dot
+                ? indexOfDot + diff + 1
+                : indexOfDot - diff;
+
+        fixed = new StringBuilder(fixed)
+                .insert(newDotIndex, ".")
+                .toString();
+
+        fixed = increase
+                ? fixed.replaceAll("^([^.]+)?(\\.)(.*)$", "$1$3")
+                : fixed.replaceAll("^(.*)(\\.)([^.]+)$", "$1$3");
+
+        fixed = cutOffZeros(fixed);
+
+        //Handle MAX value length
+        String fraction = fixed.replaceAll("^(.*)(\\.)([^.]+)$", "$3");
+
+        if (fraction.length() > FRACTION_MAX_LEN) {
+            //Try reduce
+            fraction = "0." + fraction.substring(0, FRACTION_MAX_LEN - 1);
+            fraction = cutOffZeros(fraction);
+            if (fraction.length() > FRACTION_MAX_LEN) {
+                throw new ConversionMaxValueException("Unexpected big fraction part of result " + fixed);
             }
+
+            fraction = fraction.replace("0.", "");
         }
 
-        return new BigDecimal(Double.toString(source)).multiply(multiplier).doubleValue();
+        String whole = fixed.replaceAll("^([^.]+)?(\\.)(.*)$", "$1");
+        if (whole.length() > FRACTION_MAX_LEN) {
+            throw new ConversionMaxValueException("Unexpected big whole part of result " + fixed);
+        }
+
+        return whole + (fraction.equals("0") ? "" : "." + fraction);
+    }
+
+    private String cutOffZeros(String value) {
+        return value
+                .replaceAll("^([0]*)(([1-9]|0)[0-9]*\\.([0-9]*[1-9]|0))([0]*)$", "$2");
     }
 }

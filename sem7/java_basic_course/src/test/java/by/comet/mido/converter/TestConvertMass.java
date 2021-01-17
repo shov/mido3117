@@ -23,12 +23,15 @@ public class TestConvertMass {
                 {"0.000000001", "1", FigureMass.KEY.mg, FigureMass.KEY.t},
                 {"0.000000001", "1.", FigureMass.KEY.mg, FigureMass.KEY.t},
                 {"0.000000001", "1.0", FigureMass.KEY.mg, FigureMass.KEY.t},
+                {"0.00000000001", "0.01", FigureMass.KEY.mg, FigureMass.KEY.t},
+                {"1", "0.000000001", FigureMass.KEY.t, FigureMass.KEY.mg},
+                {"0.01", "0.00000000001", FigureMass.KEY.t, FigureMass.KEY.mg},
 
-                {"0.0", "0.0", FigureMass.KEY.mg, FigureMass.KEY.t},
-                {"0.0", ".0", FigureMass.KEY.mg, FigureMass.KEY.t},
-                {"0.0", "0.", FigureMass.KEY.mg, FigureMass.KEY.t},
-                {"0.0", "0", FigureMass.KEY.mg, FigureMass.KEY.t},
-                {"0.0", "", FigureMass.KEY.mg, FigureMass.KEY.t},
+                {"0", "0.0", FigureMass.KEY.mg, FigureMass.KEY.t},
+                {"0", ".0", FigureMass.KEY.mg, FigureMass.KEY.t},
+                {"0", "0.", FigureMass.KEY.mg, FigureMass.KEY.t},
+                {"0", "0", FigureMass.KEY.mg, FigureMass.KEY.t},
+                {"0", "", FigureMass.KEY.mg, FigureMass.KEY.t},
 
                 {"0.0000001", "0.1", FigureMass.KEY.mg, FigureMass.KEY.kg},
                 {"0.0001", "0.1", FigureMass.KEY.mg, FigureMass.KEY.g},
@@ -39,6 +42,12 @@ public class TestConvertMass {
                 {"2", "2", FigureMass.KEY.kg, FigureMass.KEY.kg},
                 {"2000", "2", FigureMass.KEY.kg, FigureMass.KEY.g},
                 {"2000000", "2", FigureMass.KEY.kg, FigureMass.KEY.mg},
+
+                {"200", "0.2", FigureMass.KEY.kg, FigureMass.KEY.g},
+                {"20", "0.02", FigureMass.KEY.kg, FigureMass.KEY.g},
+                {"2", "0.002", FigureMass.KEY.kg, FigureMass.KEY.g},
+                {"0.2", "0.0002", FigureMass.KEY.kg, FigureMass.KEY.g},
+                {"1500", "1.5", FigureMass.KEY.kg, FigureMass.KEY.g},
 
         });
     }
@@ -54,7 +63,7 @@ public class TestConvertMass {
     public void convertTest() {
         try {
             String converted = new FigureMass().convert(m_source, m_from.ordinal(), m_to.ordinal());
-            assertEquals(converted, m_expected);
+            assertEquals(m_expected, converted);
         } catch (Throwable e) {
             fail(e.getMessage());
         }

@@ -10,7 +10,7 @@ public class FigureMass implements IConvertingFigure {
             "mg", "g", "kg", "t"
     };
 
-    private enum KEY {
+    protected enum KEY {
         mg, g, kg, t
     }
 
@@ -66,7 +66,7 @@ public class FigureMass implements IConvertingFigure {
     }
 
     private String fixLeadsNTrails(String value) {
-        String clean = String.valueOf(Double.parseDouble(value.trim()));
+        String clean = Double.toString(Double.parseDouble(value.trim()));
 
         if(m_valueRegExPatternTrailDot.matcher(value).matches()) {
             return clean.replace(".0", ".");
@@ -93,10 +93,10 @@ public class FigureMass implements IConvertingFigure {
         }
 
         double numericFrom = Double.parseDouble(fixValue(value));
-        return String.valueOf(convertOnMg(numericFrom, KEY.values()[fromKey], KEY.values()[toKey]));
+        return Double.toString(compute(numericFrom, KEY.values()[fromKey], KEY.values()[toKey]));
     }
 
-    private double convertOnMg(double source, KEY from, KEY to) {
+    protected double compute(double source, KEY from, KEY to) {
         //g -> 1000 mg
         //kg -> 1000 g
         //t -> 1000 kg

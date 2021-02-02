@@ -1,15 +1,13 @@
 package by.comet.mido.converter;
 
-import java.util.regex.Pattern;
-
 /**
  * general for all figures kinds
  */
 public interface IConvertingFigure {
     /**
-     * @return kit of provided figures
+     * @return kit of provided units
      */
-    public Figure[] getFigures();
+    public Unit[] getUnits();
 
     /**
      * @return kind of unique kind :)
@@ -17,17 +15,16 @@ public interface IConvertingFigure {
     public String getKind();
 
     /**
+     * Validate income value
      * @param value
-     * @return corrected value (validation + normalization)
+     * @return is it valid
      */
-    public String fixValue(String value);
+    public boolean isValid(String value);
 
     /**
-     * @param value
-     * @param fallbackValue
-     * @return corrected value, fallback if not valid
+     * @return valid default value
      */
-    public String fixValue(String value, String fallbackValue);
+    public String getDefaultValue();
 
     /**
      * @param fromKey

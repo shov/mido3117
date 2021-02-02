@@ -19,67 +19,38 @@ public class FigureMass implements IConvertingFigure {
     private final int FRACTION_MAX_LEN = 20;
 
     private String m_kind;
-    private Figure[] m_figures;
-
-    private Pattern m_valueRegExPattern;
-    private Pattern m_valueRegExPatternNoDot;
+    private Unit[] m_units;
 
     private DecimalFormat m_big_double_formatter = new DecimalFormat("0.00000000000000000000");
 
     public FigureMass() {
-        //Set kind and figures
+        //Set kind and units
         m_kind = this.getClass().toString();
-        m_figures = new Figure[m_labels.length];
-        for (int i = 0; i < m_labels.length; i++) {
-            m_figures[i] = new Figure(m_kind, i, m_labels[i]);
-        }
+        m_units = new Unit[m_labels.length];
 
-        //Set mather
-        int l = FRACTION_MAX_LEN;
-        m_valueRegExPattern = Pattern
-                .compile("^([0-9]{1," + l + "}(\\.[0-9]{1," + l + "}|\\.)?|\\.[0-9]{1," + l + "})$");
-
-        m_valueRegExPatternNoDot = Pattern.compile("^[0-9]{1," + l + "}$");
+        for (int i = 0; i < m_labels.length; i++)
+            m_units[i] = new Unit(m_kind, i, m_labels[i]);
     }
 
     public String getKind() {
         return this.getClass().toString();
     }
 
-    public Figure[] getFigures() {
-        return m_figures;
+    public Unit[] getUnits() {
+        return m_units;
     }
 
-    public String fixValue(String value) {
-        if (value.length() == 0) {
-            return value; //Empty is allowed, it equals 0
-        }
+    public boolean isValid(String value) {
+        String contentExp = "^(([1-9]+[0-9]*|[0-9])(\\.|\\.([0-9]|[0-9]*[1-9]+))?|(\\.([0-9]|[0-9]*[1-9]+)))$";
 
-        if (!m_valueRegExPattern.matcher(value.trim()).matches()) {
-            return fixLeadsNTrails("0"); //Initial
-        }
+        int l = FRACTION_MAX_LEN;
+        String lenExp = "^(\\d{1," + l + "}\\.?|\\d{0," + l + "}\\.\\d{1," + l + "})$";
 
-        return fixLeadsNTrails(value);
+        return value.matches(contentExp) && value.matches(lenExp);
     }
 
-    public String fixValue(String value, String fallbackValue) {
-        if (!m_valueRegExPattern.matcher(value.trim()).matches()) {
-            return fixValue(fallbackValue);
-        }
-
-        return fixLeadsNTrails(value);
-    }
-
-    private String fixLeadsNTrails(String value) {
-        double numeric = Double.parseDouble(value.trim());
-        String clean = m_big_double_formatter.format(numeric);
-        clean = cutOffZeros(clean);
-
-        if (m_valueRegExPatternNoDot.matcher(value).matches()) {
-            return clean.replaceAll("\\.0$", "");
-        }
-
-        return clean;
+    public String getDefaultValue() {
+        return "0";
     }
 
     public String convert(String value, int fromKey, int toKey) throws ConversionException {
@@ -89,6 +60,10 @@ public class FigureMass implements IConvertingFigure {
 
         if (toKey < 0 || toKey > KEY.values().length) {
             throw new ConversionException("Unexpected, wrong to key!");
+        }
+
+        if(!isValid(value)) {
+            throw new ConversionException("Invalid value for this converter given!");
         }
 
         String fixed = fixValue(value);
@@ -160,6 +135,13 @@ public class FigureMass implements IConvertingFigure {
         }
 
         return whole + (fraction.equals("0") ? "" : "." + fraction);
+    }
+
+    private String fixValue(String value) {
+        double numeric = Double.parseDouble(value.trim());
+        String clean = m_big_double_formatter.format(numeric);
+
+        return cutOffZeros(clean);
     }
 
     private String cutOffZeros(String value) {

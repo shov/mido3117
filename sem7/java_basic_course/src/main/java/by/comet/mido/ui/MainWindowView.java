@@ -120,10 +120,6 @@ class MainWindowView extends JFrame {
             masterField.setKind(((ComboItem) masterCombo.getSelectedItem()).getKind());
             slaveField.setKind(((ComboItem) slaveCombo.getSelectedItem()).getKind());
 
-            //Fix texts
-            updateFieldText(masterField);
-            updateFieldText(slaveField);
-
             //Set direction caption
             m_directionBt.setText(
                     m_model.getCurrDirection() == EConvertDirection.RIGHT ? DIRECTION_LR : DIRECTION_RL);
@@ -217,9 +213,9 @@ class MainWindowView extends JFrame {
         return m_model.getCurrDirection() == EConvertDirection.RIGHT ? m_rField : m_lField;
     }
 
-    public void updateFieldText(StateTextField field) throws Exception {
+    public void setDefaultValue(StateTextField field) throws Exception {
         field.setText(
-                m_model.fixValueForItem(field.getKind(), field.getText(), field.getLastText())
+                m_model.getDefaultValue(field.getKind(), field.getText(), field.getLastText())
         );
     }
 
@@ -264,10 +260,6 @@ class MainWindowView extends JFrame {
         //Set field kinds
         masterField.setKind(masterSelected.getKind());
         slaveField.setKind(slaveSelected.getKind());
-
-        //Fix texts
-        updateFieldText(masterField);
-        updateFieldText(slaveField);
     }
 
     /**
@@ -299,7 +291,6 @@ class MainWindowView extends JFrame {
             );
 
             slaveField.setText(converted);
-            updateFieldText(slaveField);
         } catch (ConversionInvalidValueException e) {
             showError("Can't convert!\nValue '" + slaveField.getText() + "' is not valid!");
         } catch (ConversionMaxValueException e) {

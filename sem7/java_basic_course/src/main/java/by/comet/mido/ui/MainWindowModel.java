@@ -1,7 +1,7 @@
 package by.comet.mido.ui;
 
 import by.comet.mido.converter.EConvertDirection;
-import by.comet.mido.converter.Figure;
+import by.comet.mido.converter.Unit;
 import by.comet.mido.converter.FigureMass;
 import by.comet.mido.converter.IConvertingFigure;
 
@@ -18,7 +18,7 @@ class MainWindowModel {
 
     private IConvertingFigure[] m_figureRepos;
     private Map<String, IConvertingFigure> m_figureReposMap;
-    private Map<String, Figure[]> m_figureReposContentMap;
+    private Map<String, Unit[]> m_figureReposContentMap;
 
     private ArrayList<ComboItem> m_masterComboItems;
 
@@ -29,23 +29,23 @@ class MainWindowModel {
         m_figureRepos[0] = new FigureMass();
 
         m_figureReposMap = new HashMap<String, IConvertingFigure>();
-        m_figureReposContentMap = new HashMap<String, Figure[]>();
+        m_figureReposContentMap = new HashMap<String, Unit[]>();
 
 
         //Save master combo items, fill figures map
         m_masterComboItems = new ArrayList<ComboItem>();
         for (IConvertingFigure repo : m_figureRepos) {
-            Figure[] repoFigures = repo.getFigures();
+            Unit[] repoUnits = repo.getUnits();
 
             m_figureReposMap.put(repo.getKind(), repo);
-            m_figureReposContentMap.put(repo.getKind(), repoFigures);
+            m_figureReposContentMap.put(repo.getKind(), repoUnits);
 
 
-            for (Figure figure : repoFigures) {
+            for (Unit unit : repoUnits) {
                 m_masterComboItems.add(new ComboItem(
-                        figure.getKind(),
-                        figure.getKey(),
-                        figure.getLabel()
+                        unit.getKind(),
+                        unit.getKey(),
+                        unit.getLabel()
                 ));
             }
         }
@@ -109,15 +109,15 @@ class MainWindowModel {
      * @return figure
      * @throws Exception
      */
-    private Figure getFigureByProps(String kind, int key) throws Exception {
-        Figure[] repoFigures = m_figureReposContentMap.get(kind);
-        if (null == repoFigures) {
+    private Unit getFigureByProps(String kind, int key) throws Exception {
+        Unit[] repoUnits = m_figureReposContentMap.get(kind);
+        if (null == repoUnits) {
             throw new Exception("Unexpected, cannot find figures for given kind " + kind);
         }
 
-        for (Figure repoFigure : repoFigures) {
-            if (repoFigure.getKey() == key) {
-                return repoFigure;
+        for (Unit repoUnit : repoUnits) {
+            if (repoUnit.getKey() == key) {
+                return repoUnit;
             }
         }
 
@@ -135,9 +135,9 @@ class MainWindowModel {
      * @param fallbackValue
      * @return valid value
      */
-    public String fixValueForItem(String kind, String value, String fallbackValue) throws Exception {
+    public String getDefaultValue(String kind, String value, String fallbackValue) throws Exception {
         IConvertingFigure repo = getFigureRepoByKind(kind);
-        return repo.fixValue(value, fallbackValue);
+        return repo.getDefaultValue();
     }
 
     /**

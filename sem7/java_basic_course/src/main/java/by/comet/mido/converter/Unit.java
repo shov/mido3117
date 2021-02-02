@@ -3,12 +3,12 @@ package by.comet.mido.converter;
 /**
  * A figure like kg or m
  */
-public class Figure {
+public class Unit {
     private String m_label;
     private String m_kind;
     private int m_key;
 
-    Figure(String kind, int key, String label) {
+    Unit(String kind, int key, String label) {
         m_kind = kind;
         m_key = key;
         m_label = label;

@@ -26,14 +26,14 @@ class MainWindowController {
             } catch (Exception ex) {
                 ex.printStackTrace();
                 m_model.swapDirection(); //back
-                m_view.showError("Something goes wrong X0");
+                m_view.showError("Cannot swap! 😕");
             }
 
             try {
                 m_view.convert();
             } catch (Exception e) {
                 e.printStackTrace();
-                m_view.showError("Something goes wrong X0.3");
+                m_view.showError("Cannot convert after swap! 😕");
             }
         });
 
@@ -45,34 +45,12 @@ class MainWindowController {
             }
 
             public void keyReleased(KeyEvent event) {
-                StateTextField field = (StateTextField) event.getSource();
-                boolean isEdited = event.getKeyCode() == KeyEvent.VK_DELETE
-                        || event.getKeyCode() == KeyEvent.VK_BACK_SPACE;
-                boolean isNotControl = !Character.isISOControl(event.getKeyCode());
-
-                if (isEdited || isNotControl) {
-                    int caretPos = field.getCaretPosition();
-                    try {
-                        m_view.updateFieldText(field);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        m_view.showError("Something goes wrong X1");
-                    }
-
-                    if (field.getText().length() > caretPos) {
-                        field.setCaretPosition(caretPos);
-                    }
-
-                } else {
-                    event.consume();
-                }
-
                 if (event.getKeyCode() == KeyEvent.VK_ENTER) {
                     try {
                         m_view.convert();
                     } catch (Exception e) {
                         e.printStackTrace();
-                        m_view.showError("Something goes wrong X1.3");
+                        m_view.showError("Cannot handle Enter releasing! 😕");
                     }
                 }
             }
@@ -83,7 +61,7 @@ class MainWindowController {
                 m_view.refreshOfChangedCombo((JComboBox) event.getSource());
             } catch (Exception e) {
                 e.printStackTrace();
-                m_view.showError("Something goes wrong X2");
+                m_view.showError("Cannot handle switching combo! 😕");
             }
         });
 
@@ -92,7 +70,7 @@ class MainWindowController {
                 m_view.convert();
             } catch (Exception e) {
                 e.printStackTrace();
-                m_view.showError("Something goes wrong X3");
+                m_view.showError("Cannot convert! 😕");
             }
         });
     }

@@ -1,5 +1,6 @@
 package by.comet.mido.ui;
 
+import by.comet.mido.converter.ConversionInvalidValueException;
 import by.comet.mido.converter.ConversionMaxValueException;
 import by.comet.mido.converter.EConvertDirection;
 import net.miginfocom.swing.MigLayout;
@@ -299,6 +300,8 @@ class MainWindowView extends JFrame {
 
             slaveField.setText(converted);
             updateFieldText(slaveField);
+        } catch (ConversionInvalidValueException e) {
+            showError("Can't convert!\nValue '" + slaveField.getText() + "' is not valid!");
         } catch (ConversionMaxValueException e) {
             slaveField.setText(StateTextField.ERROR_TEXT);
             showError("Result unfits allowed range!");

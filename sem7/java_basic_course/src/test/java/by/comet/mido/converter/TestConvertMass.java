@@ -31,7 +31,6 @@ public class TestConvertMass {
                 {"0", ".0", FigureMass.KEY.mg, FigureMass.KEY.t},
                 {"0", "0.", FigureMass.KEY.mg, FigureMass.KEY.t},
                 {"0", "0", FigureMass.KEY.mg, FigureMass.KEY.t},
-                {"0", "", FigureMass.KEY.mg, FigureMass.KEY.t},
 
                 {"0.0000001", "0.1", FigureMass.KEY.mg, FigureMass.KEY.kg},
                 {"0.0001", "0.1", FigureMass.KEY.mg, FigureMass.KEY.g},

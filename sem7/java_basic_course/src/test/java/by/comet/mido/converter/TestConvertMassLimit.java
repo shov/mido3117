@@ -13,7 +13,7 @@ public class TestConvertMassLimit {
 
     }
 
-    @Test
+    @Test(expected = ConversionException.class)
     public void noInputWhole() throws ConversionException {
 
         new FigureMass()

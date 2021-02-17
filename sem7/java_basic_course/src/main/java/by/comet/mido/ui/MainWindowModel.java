@@ -1,9 +1,6 @@
 package by.comet.mido.ui;
 
-import by.comet.mido.converter.EConvertDirection;
-import by.comet.mido.converter.Unit;
-import by.comet.mido.converter.FigureMass;
-import by.comet.mido.converter.IConvertingFigure;
+import by.comet.mido.converter.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,8 +22,9 @@ class MainWindowModel {
     public MainWindowModel() {
 
         //Fill in figure repos
-        m_figureRepos = new IConvertingFigure[1];
+        m_figureRepos = new IConvertingFigure[2];
         m_figureRepos[0] = new FigureMass();
+        m_figureRepos[1] = new FigureDistance();
 
         m_figureReposMap = new HashMap<String, IConvertingFigure>();
         m_figureReposContentMap = new HashMap<String, Unit[]>();
@@ -86,72 +84,24 @@ class MainWindowModel {
         return buff.toArray(new ComboItem[0]);
     }
 
-    /**
-     * Get figure repo by combo item
-     *
-     * @param kind
-     * @return repo
-     * @throws Exception
-     */
-    private IConvertingFigure getFigureRepoByKind(String kind) throws Exception {
-        IConvertingFigure repo = m_figureReposMap.get(kind);
-        if (null == repo) {
-            throw new Exception("Unexpected, cannot find figures for given kind " + kind);
-        }
-        return repo;
-    }
-
-    /**
-     * Get figure by combo item
-     *
-     * @param kind
-     * @param key
-     * @return figure
-     * @throws Exception
-     */
-    private Unit getFigureByProps(String kind, int key) throws Exception {
-        Unit[] repoUnits = m_figureReposContentMap.get(kind);
-        if (null == repoUnits) {
-            throw new Exception("Unexpected, cannot find figures for given kind " + kind);
-        }
-
-        for (Unit repoUnit : repoUnits) {
-            if (repoUnit.getKey() == key) {
-                return repoUnit;
-            }
-        }
-
-        throw new Exception("Unexpected, cannot find figure for given kind and key "
-                + kind
-                + " "
-                + key);
-    }
-
-    /**
-     * Fix/Update a value for kind of figure of selected item
-     * TODO: switch to common interface
-     * @param kind
-     * @param value
-     * @param fallbackValue
-     * @return valid value
-     */
-    public String getDefaultValue(String kind, String value, String fallbackValue) throws Exception {
+    public String getDefaultValueByKind(String kind) throws Exception {
         IConvertingFigure repo = getFigureRepoByKind(kind);
         return repo.getDefaultValue();
     }
 
     /**
      * Perform converting
-     * TODO switch to common interface
-     * @param kind
-     * @param fromKey
-     * @param toKey
-     * @param value
-     * @return converted value
-     * @throws Exception
      */
     public String convertFigure(String value, String kind, int fromKey, int toKey) throws Exception {
         IConvertingFigure repo = getFigureRepoByKind(kind);
         return repo.convert(value, fromKey, toKey);
+    }
+
+    private IConvertingFigure getFigureRepoByKind(String kind) throws Exception {
+        IConvertingFigure repo = m_figureReposMap.get(kind);
+        if (null == repo) {
+            throw new Exception("Unexpected, cannot find figures for given kind " + kind);
+        }
+        return repo;
     }
 }

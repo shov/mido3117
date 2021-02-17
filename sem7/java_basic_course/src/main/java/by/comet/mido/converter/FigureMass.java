@@ -1,16 +1,12 @@
 package by.comet.mido.converter;
 
 import java.util.Arrays;
-import java.util.regex.Pattern;
 import java.text.DecimalFormat;
 
 /**
  * Mass (or Weight)
  */
 public class FigureMass implements IConvertingFigure {
-    private final String[] m_labels = {
-            "mg", "g", "kg", "t"
-    };
 
     public enum KEY {
         mg, g, kg, t
@@ -18,18 +14,21 @@ public class FigureMass implements IConvertingFigure {
 
     private final int FRACTION_MAX_LEN = 20;
 
-    private String m_kind;
-    private Unit[] m_units;
+    protected Unit[] m_units;
 
     private DecimalFormat m_big_double_formatter = new DecimalFormat("0.00000000000000000000");
 
     public FigureMass() {
-        //Set kind and units
-        m_kind = this.getClass().toString();
-        m_units = new Unit[m_labels.length];
+        String kind = this.getClass().toString();
 
-        for (int i = 0; i < m_labels.length; i++)
-            m_units[i] = new Unit(m_kind, i, m_labels[i]);
+        String[] labels = {
+                "mg", "g", "kg", "t"
+        };
+
+        m_units = new Unit[labels.length];
+
+        for (int i = 0; i < labels.length; i++)
+            m_units[i] = new Unit(kind, i, labels[i]);
     }
 
     public String getKind() {
@@ -46,7 +45,7 @@ public class FigureMass implements IConvertingFigure {
         int l = FRACTION_MAX_LEN;
         String lenExp = "^(\\d{1," + l + "}\\.?|\\d{0," + l + "}\\.\\d{1," + l + "})$";
 
-        return value.matches(contentExp) && value.matches(lenExp);
+        return value != null && value.matches(contentExp) && value.matches(lenExp);
     }
 
     public String getDefaultValue() {
@@ -62,7 +61,7 @@ public class FigureMass implements IConvertingFigure {
             throw new ConversionException("Unexpected, wrong to key!");
         }
 
-        if(!isValid(value)) {
+        if (!isValid(value)) {
             throw new ConversionException("Invalid value for this converter given!");
         }
 
@@ -137,7 +136,11 @@ public class FigureMass implements IConvertingFigure {
         return whole + (fraction.equals("0") ? "" : "." + fraction);
     }
 
-    private String fixValue(String value) {
+    private String fixValue(String value) throws ConversionInvalidValueException {
+        if(!isValid(value)) {
+            throw new ConversionInvalidValueException("Not valid value!");
+        }
+
         double numeric = Double.parseDouble(value.trim());
         String clean = m_big_double_formatter.format(numeric);
 

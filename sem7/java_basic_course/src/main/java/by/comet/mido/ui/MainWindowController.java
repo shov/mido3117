@@ -50,7 +50,7 @@ class MainWindowController {
                         m_view.convert();
                     } catch (Exception e) {
                         e.printStackTrace();
-                        m_view.showError("Cannot handle Enter releasing! 😕");
+                        m_view.showError("Cannot convert! 😕");
                     }
                 }
             }

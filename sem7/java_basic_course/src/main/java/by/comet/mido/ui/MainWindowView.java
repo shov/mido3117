@@ -52,26 +52,23 @@ class MainWindowView extends JFrame {
         m_lField = new StateTextField();
         m_rField = new StateTextField();
 
-        m_directionBt = new JButton();
+        m_directionBt = new JButton("Swap direction");
         m_lCombo = new JComboBox();
         m_rCombo = new JComboBox();
-        m_convertBt = new JButton("Convert it!");
+        m_convertBt = new JButton();
 
         JLabel copyLabel = new JLabel("Education project, Ⓒ Alexandr Shevchenko, 2021, MIT");
         copyLabel.setFont(new Font(null, Font.PLAIN, 9));
 
         //Getting layout
         add(m_lField, "growx");
-        add(m_directionBt, "growx");
+        add(m_convertBt, "growx");
         add(m_rField, "growx, wrap");
         add(m_lCombo, "growx");
-        add(m_convertBt, "growx");
+        add(m_directionBt, "growx");
         add(m_rCombo, "growx, wrap");
         add(copyLabel, "span 3");
 
-        //Set initial text to fields
-        m_lField.setText(StateTextField.DEFAULT_TEXT);
-        m_rField.setText(StateTextField.DEFAULT_TEXT);
 
         //Main form state trigger
         //Init direction, populate items, text fields
@@ -84,11 +81,7 @@ class MainWindowView extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    /**
-     * Show error message
-     *
-     * @param message
-     */
+
     public void showError(String message) {
         JOptionPane.showMessageDialog(this, message);
     }
@@ -116,33 +109,41 @@ class MainWindowView extends JFrame {
             StateTextField masterField = getMasterField();
             StateTextField slaveField = getSlaveField();
 
+            //Current kinds of combos
+            String masterKind = ((ComboItem) masterCombo.getSelectedItem()).getKind();
+            String slaveKind = ((ComboItem) slaveCombo.getSelectedItem()).getKind();
+
+            boolean needToDefaultMaster = null == masterField.getKind() || !masterField.getKind().equals(masterKind);
+            boolean needToDefaultSlave = null == slaveField.getKind() || !slaveField.getKind().equals(slaveKind);
+
             //Set field kinds
-            masterField.setKind(((ComboItem) masterCombo.getSelectedItem()).getKind());
-            slaveField.setKind(((ComboItem) slaveCombo.getSelectedItem()).getKind());
+            masterField.setKind(masterKind);
+            slaveField.setKind(slaveKind);
+
+            //If need to set default values
+            if (needToDefaultMaster) {
+                setDefaultValue(masterField);
+            }
+
+            if (needToDefaultSlave) {
+                setDefaultValue(slaveField);
+            }
 
             //Set direction caption
-            m_directionBt.setText(
+            m_convertBt.setText(
                     m_model.getCurrDirection() == EConvertDirection.RIGHT ? DIRECTION_LR : DIRECTION_RL);
         } finally {
             m_refresh_mutex = false;
         }
     }
 
-    /**
-     * Populate to Master comboBox
-     *
-     * @param items
-     */
+
     private void populateMasterCombo(ComboItem[] items) {
         JComboBox combo = getMasterCombo();
         populateCombo(combo, items, false);
     }
 
-    /**
-     * Populate to Slave combo
-     *
-     * @param items
-     */
+
     private void populateSlaveCombo(ComboItem[] items) {
         JComboBox combo = getSlaveCombo();
         populateCombo(combo, items, true);
@@ -156,13 +157,6 @@ class MainWindowView extends JFrame {
         return m_model.getCurrDirection() == EConvertDirection.RIGHT ? m_rCombo : m_lCombo;
     }
 
-    /**
-     * Populate items to comboBox
-     *
-     * @param combo
-     * @param items
-     * @param sameKind
-     */
     private void populateCombo(JComboBox combo, ComboItem[] items, boolean sameKind) {
         ComboItem selected = (ComboItem) combo.getSelectedItem();
 
@@ -188,14 +182,6 @@ class MainWindowView extends JFrame {
         combo.setSelectedIndex(0);
     }
 
-    /**
-     * Looking for item position in a comboBox
-     *
-     * @param comboBox
-     * @param label
-     * @return position
-     * @throws Exception
-     */
     private int findComboItemPosition(JComboBox comboBox, String label) throws Exception {
         for (int i = 0; i < comboBox.getItemCount(); i++) {
             if (comboBox.getItemAt(i).toString().equals(label)) {
@@ -215,7 +201,7 @@ class MainWindowView extends JFrame {
 
     public void setDefaultValue(StateTextField field) throws Exception {
         field.setText(
-                m_model.getDefaultValue(field.getKind(), field.getText(), field.getLastText())
+                m_model.getDefaultValueByKind(field.getKind())
         );
     }
 
@@ -247,12 +233,18 @@ class MainWindowView extends JFrame {
         StateTextField masterField = getMasterField();
         StateTextField slaveField = getSlaveField();
 
+        //Current kinds of combos
+        String masterKind = ((ComboItem) masterCombo.getSelectedItem()).getKind();
+        String slaveKind = ((ComboItem) slaveCombo.getSelectedItem()).getKind();
+
+
         if (masterCombo == combo) {
             boolean mutex_prev = m_refresh_mutex;
             m_refresh_mutex = true;
 
             //(Re)populate slave
             populateSlaveCombo(m_model.getSlaveComboItems(masterSelected));
+            slaveSelected = (ComboItem) slaveCombo.getSelectedItem();
 
             m_refresh_mutex = mutex_prev;
         }
@@ -260,6 +252,22 @@ class MainWindowView extends JFrame {
         //Set field kinds
         masterField.setKind(masterSelected.getKind());
         slaveField.setKind(slaveSelected.getKind());
+
+        boolean needToDefaultMaster = null == masterField.getKind() || !masterField.getKind().equals(masterKind);
+        boolean needToDefaultSlave = null == slaveField.getKind() || !slaveField.getKind().equals(slaveKind);
+
+        //Set default values
+        if (needToDefaultMaster) {
+            setDefaultValue(masterField);
+        }
+
+        if (needToDefaultSlave) {
+            setDefaultValue(slaveField);
+        }
+
+        if(needToDefaultMaster || needToDefaultSlave) {
+            convert();
+        }
     }
 
     /**
@@ -282,6 +290,11 @@ class MainWindowView extends JFrame {
         StateTextField masterField = getMasterField();
         StateTextField slaveField = getSlaveField();
 
+        //If empty set default
+        if (masterField.getText().length() < 1) {
+            setDefaultValue(masterField);
+        }
+
         try {
             String converted = m_model.convertFigure(
                     masterField.getText(),
@@ -292,7 +305,7 @@ class MainWindowView extends JFrame {
 
             slaveField.setText(converted);
         } catch (ConversionInvalidValueException e) {
-            showError("Can't convert!\nValue '" + slaveField.getText() + "' is not valid!");
+            showError("Can't convert!\nValue '" + masterField.getText() + "' is not valid!");
         } catch (ConversionMaxValueException e) {
             slaveField.setText(StateTextField.ERROR_TEXT);
             showError("Result unfits allowed range!");

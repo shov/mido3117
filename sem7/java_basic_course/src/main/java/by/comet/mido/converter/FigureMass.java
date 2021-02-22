@@ -19,7 +19,7 @@ public class FigureMass implements IConvertingFigure {
     private DecimalFormat m_big_double_formatter = new DecimalFormat("0.00000000000000000000");
 
     public FigureMass() {
-        String kind = this.getClass().toString();
+        String kind = this.getKind();
 
         String[] labels = {
                 "mg", "g", "kg", "t"
@@ -31,14 +31,17 @@ public class FigureMass implements IConvertingFigure {
             m_units[i] = new Unit(kind, i, labels[i]);
     }
 
+    @Override
     public String getKind() {
         return this.getClass().toString();
     }
 
+    @Override
     public Unit[] getUnits() {
         return m_units;
     }
 
+    @Override
     public boolean isValid(String value) {
         String contentExp = "^(([1-9]+[0-9]*|[0-9])(\\.|\\.([0-9]|[0-9]*[1-9]+))?|(\\.([0-9]|[0-9]*[1-9]+)))$";
 
@@ -48,10 +51,12 @@ public class FigureMass implements IConvertingFigure {
         return value != null && value.matches(contentExp) && value.matches(lenExp);
     }
 
+    @Override
     public String getDefaultValue() {
         return "0";
     }
 
+    @Override
     public String convert(String value, int fromKey, int toKey) throws ConversionException {
         if (fromKey < 0 || fromKey > KEY.values().length) {
             throw new ConversionException("Unexpected, wrong from key!");

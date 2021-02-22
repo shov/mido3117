@@ -10,7 +10,7 @@ public class FigureDistance extends FigureMass implements IConvertingFigure {
     }
 
     public FigureDistance() {
-        String kind = this.getClass().toString();
+        String kind = this.getKind();
 
         String[] labels = {
                 "mm", "m", "km"

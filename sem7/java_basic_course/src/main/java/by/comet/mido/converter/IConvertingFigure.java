@@ -11,7 +11,7 @@ public interface IConvertingFigure {
 
     String getKind();
 
-    boolean isValid(String value);
+    boolean isValid(String value, int key) throws ConversionException;
 
     String getDefaultValue();
 

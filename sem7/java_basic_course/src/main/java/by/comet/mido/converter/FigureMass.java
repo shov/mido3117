@@ -42,7 +42,11 @@ public class FigureMass implements IConvertingFigure {
     }
 
     @Override
-    public boolean isValid(String value) {
+    public boolean isValid(String value, int key) {
+        return isValid(value);
+    }
+
+    private boolean isValid(String value) {
         String contentExp = "^(([1-9]+[0-9]*|[0-9])(\\.|\\.([0-9]|[0-9]*[1-9]+))?|(\\.([0-9]|[0-9]*[1-9]+)))$";
 
         int l = FRACTION_MAX_LEN;

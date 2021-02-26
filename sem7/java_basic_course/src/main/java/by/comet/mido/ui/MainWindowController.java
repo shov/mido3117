@@ -26,14 +26,14 @@ class MainWindowController {
             } catch (Exception ex) {
                 ex.printStackTrace();
                 m_model.swapDirection(); //back
-                m_view.showError("Cannot swap! 😕");
+                m_view.showError("Cannot swap!");
             }
 
             try {
                 m_view.convert();
             } catch (Exception e) {
                 e.printStackTrace();
-                m_view.showError("Cannot convert after swap! 😕");
+                m_view.showError("Cannot convert after swap! Check if the value is correct");
             }
         });
 
@@ -50,7 +50,7 @@ class MainWindowController {
                         m_view.convert();
                     } catch (Exception e) {
                         e.printStackTrace();
-                        m_view.showError("Cannot convert! 😕");
+                        m_view.showError("Cannot convert! Check if the value is correct");
                     }
                 }
             }
@@ -61,7 +61,7 @@ class MainWindowController {
                 m_view.refreshOfChangedCombo((JComboBox) event.getSource());
             } catch (Exception e) {
                 e.printStackTrace();
-                m_view.showError("Cannot handle switching combo! 😕");
+                m_view.showError("Cannot handle switching combo!");
             }
         });
 
@@ -70,7 +70,7 @@ class MainWindowController {
                 m_view.convert();
             } catch (Exception e) {
                 e.printStackTrace();
-                m_view.showError("Cannot convert! 😕");
+                m_view.showError("Cannot convert! Check if the value is correct");
             }
         });
     }

@@ -21,10 +21,11 @@ class MainWindowModel {
 
     public MainWindowModel() {
 
-        //Fill in figure repos
-        m_figureRepos = new IConvertingFigure[2];
+        //Fill in figure repos (manually)
+        m_figureRepos = new IConvertingFigure[3];
         m_figureRepos[0] = new FigureMass();
         m_figureRepos[1] = new FigureDistance();
+        m_figureRepos[2] = new FigureDigits();
 
         m_figureReposMap = new HashMap<String, IConvertingFigure>();
         m_figureReposContentMap = new HashMap<String, Unit[]>();

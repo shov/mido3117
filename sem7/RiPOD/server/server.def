@@ -1,0 +1,6 @@
+LIBRARY      "RIPOD SERVER"
+DESCRIPTION  'RIPOD SERVER DLL'
+
+EXPORTS
+    DllGetClassObject   PRIVATE
+    DllCanUnloadNow     PRIVATE

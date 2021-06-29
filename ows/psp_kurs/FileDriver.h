@@ -8,17 +8,16 @@
 #include "TextInterface.h"
 
 
-class FileDriver : TextInterface {
+class FileDriver : public TextInterface {
     // implement interface
 public:
     // read input file
     // lock on write
-    const string &fetchFromSource(const string& scrDescriptor);
+    string* fetchFromSource(const string &srcDescriptor) override;
 
     // save to output file
     // lock on write/read
-    void save(const string &data);
+    void saveForSource(const string &data, const string &srcDescriptor) override;
 };
-
 
 #endif //PSP_KURS_FILEDRIVER_H

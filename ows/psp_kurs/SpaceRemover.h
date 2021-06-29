@@ -7,6 +7,7 @@
 
 #include "string"
 #include "regex"
+#include "TextInterface.h"
 
 using std::string;
 
@@ -20,13 +21,13 @@ public:
     static const int ALL = -1;
 
     // use text interface from DI
-    SpaceRemover(const TextInterface &textSource) : m_textSource{&textSource} {};
+    explicit SpaceRemover(TextInterface &textSource) : m_textSource{&textSource} {};
 
     // remove max num of spaces, get this limit, input src and output desc (output can be fixed or based on input name)
     void run(const string &source, int replacesLimit = ALL);
 
 protected:
-    const TextInterface *m_textSource;
+    TextInterface *m_textSource;
 };
 
 

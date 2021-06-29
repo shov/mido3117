@@ -12,10 +12,10 @@ using std::string;
 class TextInterface {
 public:
     // get string from the source
-    virtual const string &fetchFromSource(const string &srcDescriptor) = 0;
+    virtual string* fetchFromSource(const string &srcDescriptor) = 0;
 
     // save the string to output
-    virtual void save(const string &data) = 0;
+    virtual void saveForSource(const string &data, const string &srcDescriptor) = 0;
 };
 
 

@@ -20,11 +20,17 @@ public:
     // if less than zero, means replace all spaces
     static const int ALL = -1;
 
-    // use text interface from DI
+    /**
+     * textSource is a strategy how to get and save the text
+     */
     explicit SpaceRemover(TextInterface &textSource) : m_textSource{&textSource} {};
 
-    // remove max num of spaces, get this limit, input src and output desc (output can be fixed or based on input name)
-    void run(const string &source, int replacesLimit = ALL);
+    /**
+     * Remove max the given number of space characters and return how many of them have been removed
+     * if replacesLimit < 0 it removes as many space characters it can find
+     * the result to be persisted to a output based on source and a strategy given by construction
+     */
+    int run(const string &source, int replacesLimit = ALL);
 
 protected:
     TextInterface *m_textSource;

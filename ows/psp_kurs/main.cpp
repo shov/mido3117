@@ -6,7 +6,7 @@
 int main(int argc, char **argv) {
     try {
         // the first version is based on app arguments, so replaceLimit and inputFile
-        if(argc < 3) {
+        if (argc < 3) {
             throw std::runtime_error("Expected at least 2 arguments: filename and replace_limit");
         }
 
@@ -20,11 +20,13 @@ int main(int argc, char **argv) {
         SpaceRemover remover(textOp);
 
         //the first version of the app is to be terminated after one run
-        remover.run(fileName, replaceLimit);
+        int removedRes = remover.run(fileName, replaceLimit);
 
-    } catch (const std::exception& e) {
+        std::cout << removedRes << " space characters have been removed!" << std::endl;
+
+    } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
-    } catch(...) {
+    } catch (...) {
         std::cerr << "Unexpected error occurred!" << std::endl;
     }
     return 0;

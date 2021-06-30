@@ -4,41 +4,41 @@
 
 #include "SpaceRemover.h"
 
-/**
- * Replace spaces in string with nothing
- * if limit less than zero replace all
- * if 0 or greater, replace max times by the limit
- * save the result back to text source
- */
-void SpaceRemover::run(const string &source, int replacesLimit) {
+int SpaceRemover::run(const string &source, int replacesLimit) {
     // get the string, expected it's utf-8
     string* sourceStr = m_textSource->fetchFromSource(source);
 
-    string resultStr = string();
+    string resultStr;
+    std::regex space("\\s");
 
-    if(replacesLimit < 0) {
-        // use regexp to replace all \s
-        // return the result
-    }
+    int replaceCounter = 0;
 
     if(replacesLimit == 0) {
         resultStr = *sourceStr;
     }
 
-    if(replacesLimit > 0) {
+    if(replacesLimit != 0) {
 
-        int replaceCounter = 0;
+        for(char const & c: *sourceStr) {
+            string tmp;
+            tmp.push_back(c);
 
-        // iterate thru the string
-        // push every char to resultStr
-        // if met \s and replaceCounter still <= replaceLimit
-        //   skip pushing, increase replaceCounter
+            if(std::regex_match(tmp, space)) {
+                if(replacesLimit == replaceCounter && replacesLimit > 0) {
+                    resultStr.push_back(c);
+                    continue;
+                }
+
+                replaceCounter++;
+                continue;
+            }
+
+            resultStr.push_back(c);
+        }
+
     }
-
-    //todo remove
-    resultStr = *sourceStr;
-    resultStr += "⚙️ -> ";
 
     delete sourceStr;
     m_textSource->saveForSource(resultStr, source);
+    return replaceCounter;
 }

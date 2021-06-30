@@ -66,7 +66,7 @@ string *FileDriver::fetchFromSource(const string &srcDescriptor) {
 
 void FileDriver::saveForSource(const string &data, const string &srcDescriptor) {
     string outFile = srcDescriptor + ".out";
-    int fileDescriptor = open(outFile.c_str(), O_WRONLY | O_CREAT, 0666);
+    int fileDescriptor = open(outFile.c_str(), O_TRUNC | O_WRONLY | O_CREAT, 0666);
     if (fileDescriptor < 0) {
         switch (errno) {
             case EACCES:

@@ -33,32 +33,25 @@ string *FileDriver::fetchFromSource(const string &srcDescriptor) {
     auto *result = new string;
     result->resize(fileInfo.st_size);
 
-    // Locking
-    struct flock flockInfo{};
-    flockInfo.l_type = F_RDLCK;
-    flockInfo.l_whence = SEEK_SET;
-    flockInfo.l_start = 0;
-    flockInfo.l_len = 0;
-    flockInfo.l_pid = getpid();
-
-    // set locking in blocking mode
-    int gotFlockData = fcntl(fileDescriptor, F_SETLKW, &flockInfo);
-    if (gotFlockData < 0) {
-        errno_t lockErr = errno;
+    //Locking
+    try {
+        this->lockFile(fileDescriptor, F_RDLCK);
+    } catch (std::runtime_error &e) {
+        errno_t lockRrr = std::stoi(e.what());
         close(fileDescriptor);
         throw std::runtime_error("Cannot lock file for reading " + srcDescriptor
-                                 + " details: " + strerror(lockErr)
-                                 + " | " + std::to_string(lockErr));
+                                 + " details: " + strerror(lockRrr)
+                                 + " | " + e.what());
     }
 
     // Read
     read(fileDescriptor, (char *) (result->data()), fileInfo.st_size);
 
     // Unlocking
-    flockInfo.l_type = F_UNLCK;
-    gotFlockData = fcntl(fileDescriptor, F_SETLKW, &flockInfo);
-    if (gotFlockData < 0) {
-        errno_t lockErr = errno;
+    try {
+        this->unlockFile(fileDescriptor);
+    } catch (std::runtime_error &e) {
+        errno_t lockErr = std::stoi(e.what());
         close(fileDescriptor);
         throw std::runtime_error("Cannot unlock file " + srcDescriptor
                                  + " details: " + strerror(lockErr)
@@ -89,32 +82,25 @@ void FileDriver::saveForSource(const string &data, const string &srcDescriptor) 
         }
     }
 
-    // Locking
-    struct flock flockInfo{};
-    flockInfo.l_type = F_WRLCK;
-    flockInfo.l_whence = SEEK_SET;
-    flockInfo.l_start = 0;
-    flockInfo.l_len = 0;
-    flockInfo.l_pid = getpid();
-
-    // set locking in blocking mode
-    int gotFlockData = fcntl(fileDescriptor, F_SETLKW, &flockInfo);
-    if (gotFlockData < 0) {
-        errno_t lockErr = errno;
+    //Locking
+    try {
+        FileDriver::lockFile(fileDescriptor, F_WRLCK);
+    } catch (std::runtime_error &e) {
+        errno_t lockRrr = std::stoi(e.what());
         close(fileDescriptor);
         throw std::runtime_error("Cannot lock file " + outFile
-                                 + " details: " + strerror(lockErr)
-                                 + " | " + std::to_string(lockErr));
+                                 + " details: " + strerror(lockRrr)
+                                 + " | " + e.what());
     }
 
     // Write
     write(fileDescriptor, data.data(), data.size());
 
     // Unlocking
-    flockInfo.l_type = F_UNLCK;
-    gotFlockData = fcntl(fileDescriptor, F_SETLKW, &flockInfo);
-    if (gotFlockData < 0) {
-        errno_t lockErr = errno;
+    try {
+        FileDriver::unlockFile(fileDescriptor);
+    } catch (std::runtime_error &e) {
+        errno_t lockErr = std::stoi(e.what());
         close(fileDescriptor);
         throw std::runtime_error("Cannot unlock file " + outFile
                                  + " details: " + strerror(lockErr)
@@ -123,4 +109,34 @@ void FileDriver::saveForSource(const string &data, const string &srcDescriptor) 
 
     // Close
     close(fileDescriptor);
+}
+
+void FileDriver::lockFile(int fileDescriptor, short mode) {
+
+    struct flock flockInfo{};
+    flockInfo.l_type = mode;
+    flockInfo.l_whence = SEEK_SET;
+    flockInfo.l_start = 0;
+    flockInfo.l_len = 0;
+    flockInfo.l_pid = getpid();
+
+    // set locking in blocking mode
+    int gotFlockData = fcntl(fileDescriptor, F_SETLKW, &flockInfo);
+    if (gotFlockData < 0) {
+        throw std::runtime_error(std::to_string(errno));
+    }
+}
+
+void FileDriver::unlockFile(int fileDescriptor) {
+    struct flock flockInfo{};
+    flockInfo.l_type = F_UNLCK;
+    flockInfo.l_whence = SEEK_SET;
+    flockInfo.l_start = 0;
+    flockInfo.l_len = 0;
+    flockInfo.l_pid = getpid();
+
+    int gotFlockData = fcntl(fileDescriptor, F_SETLKW, &flockInfo);
+    if (gotFlockData < 0) {
+        throw std::runtime_error(std::to_string(errno));
+    }
 }

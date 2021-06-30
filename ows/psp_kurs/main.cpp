@@ -1,10 +1,13 @@
 #include "TextInterface.h"
 #include "FileDriver.h"
 #include "SpaceRemover.h"
+#include "DaemonBeing.h"
 #include "iostream"
+#include "vector"
 
 int main(int argc, char **argv) {
     try {
+        //TODO move to client or else
         // the first version is based on app arguments, so replaceLimit and inputFile
         if (argc < 3) {
             throw std::runtime_error("Expected at least 2 arguments: filename and replace_limit");
@@ -13,16 +16,30 @@ int main(int argc, char **argv) {
         const string fileName(argv[1]);
         const int replaceLimit = std::stoi(argv[2]);
 
-        // bind implementation of FileDriver to TextInterface
+
+
+
+
+
+
+
+
+
+        // Bind implementation of FileDriver to TextInterface
         FileDriver textOp;
 
-        // create SpaceRemover
+        // Create SpaceRemover
         SpaceRemover remover(textOp);
 
-        //the first version of the app is to be terminated after one run
-        int removedRes = remover.run(fileName, replaceLimit);
+        // Create the daemon
+        DaemonBeing daemon{};
 
-        std::cout << removedRes << " space characters have been removed!" << std::endl;
+        // Set the handler and start listening
+        daemon.setHandler([&remover](const std::vector<string> &params) -> void {
+                    int removedRes = remover.run(params[0], std::stoi(params[1]));
+                    std::cout << removedRes << " space characters have been removed!" << std::endl;
+                })
+                ->startListening();
 
     } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;

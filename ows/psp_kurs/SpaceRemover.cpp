@@ -1,7 +1,3 @@
-//
-// Created by Alexandr Shevchenko on 6/28/21.
-//
-
 #include "SpaceRemover.h"
 
 int SpaceRemover::run(const string &source, int replacesLimit) {

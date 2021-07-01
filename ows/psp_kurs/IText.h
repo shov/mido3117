@@ -2,14 +2,14 @@
 // Created by Alexandr Shevchenko on 6/28/21.
 //
 
-#ifndef PSP_KURS_TEXTINTERFACE_H
-#define PSP_KURS_TEXTINTERFACE_H
+#ifndef PSP_KURS_ITEXT_H
+#define PSP_KURS_ITEXT_H
 
 #include "string"
 
 using std::string;
 
-class TextInterface {
+class IText {
 public:
     // get string from the source
     virtual string* fetchFromSource(const string &srcDescriptor) = 0;
@@ -19,4 +19,4 @@ public:
 };
 
 
-#endif //PSP_KURS_TEXTINTERFACE_H
+#endif //PSP_KURS_ITEXT_H

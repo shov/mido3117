@@ -1,11 +1,23 @@
-#include "TextInterface.h"
+#include "IText.h"
 #include "FileDriver.h"
 #include "SpaceRemover.h"
-#include "DaemonBeing.h"
-#include "iostream"
-#include "vector"
+#include "UnixSocketServer.h"
+#include "ConsoleLogger.h"
 
 int main(int argc, char **argv) {
+
+    //Bind ConsoleLogger as the logger
+    ConsoleLogger logger;
+    ILogger *p_logger = &logger;
+
+    // Bind FileDriver as a source
+    FileDriver fileDriver;
+    IText *p_textSource = &fileDriver;
+
+    // Bind UnixSocketServer as a server
+    UnixSocketServer server;
+    IServer *p_server = &server;
+
     try {
         //TODO move to client or else
         // the first version is based on app arguments, so replaceLimit and inputFile
@@ -22,29 +34,25 @@ int main(int argc, char **argv) {
 
 
 
-
-
-
-        // Bind implementation of FileDriver to TextInterface
-        FileDriver textOp;
-
         // Create SpaceRemover
-        SpaceRemover remover(textOp);
-
-        // Create the daemon
-        DaemonBeing daemon{};
+        SpaceRemover remover(*p_textSource);
 
         // Set the handler and start listening
-        daemon.setHandler([&remover](const std::vector<string> &params) -> void {
-                    int removedRes = remover.run(params[0], std::stoi(params[1]));
-                    std::cout << removedRes << " space characters have been removed!" << std::endl;
+        // Callback runs business logic
+        p_server
+                ->setHandler([&remover, p_logger](string **params, string &out) -> void {
+                    int removedRes = remover.run(*params[0], std::stoi(*params[1]));
+
+                    p_logger->info(std::to_string(removedRes) + " space characters have been removed!");
+
+                    out.append(std::to_string(removedRes));
                 })
                 ->startListening();
 
     } catch (const std::exception &e) {
-        std::cerr << e.what() << std::endl;
+        p_logger->error(e.what());
     } catch (...) {
-        std::cerr << "Unexpected error occurred!" << std::endl;
+        p_logger->error("Unexpected error occurred!");
     }
     return 0;
 }

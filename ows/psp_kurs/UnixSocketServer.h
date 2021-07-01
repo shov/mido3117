@@ -1,12 +1,14 @@
-#ifndef PSP_KURS_DAEMONBEING_H
-#define PSP_KURS_DAEMONBEING_H
+#ifndef PSP_KURS_UNIXSOCKETSERVER_H
+#define PSP_KURS_UNIXSOCKETSERVER_H
 
+#include "IServer.h"
 #include "string"
 #include "vector"
 #include <netdb.h>
 #include <unistd.h>
 #include <sys/un.h>
 #include <utility>
+#include "regex"
 
 using std::string;
 
@@ -16,19 +18,19 @@ using std::string;
  *   passed with arguments
  *   the result is sent to the socket
  */
-class DaemonBeing {
+class UnixSocketServer : public IServer {
 public:
-    DaemonBeing *setHandler(std::function<void(const std::vector<string> &)>);
+    IServer *setHandler(std::function<void(string **, string &out)>) override;
 
-    void startListening();
+    void startListening() override;
 
 protected:
     static const char *SOCK_PATH;
 
-    std::function<void(const std::vector<string> &)> m_handler;
+    std::function<void(string **, string &out)> m_handler;
 
     void processClient(int clientSock);
 };
 
 
-#endif //PSP_KURS_DAEMONBEING_H
+#endif //PSP_KURS_UNIXSOCKETSERVER_H

@@ -1,13 +1,9 @@
-//
-// Created by Alexandr Shevchenko on 6/28/21.
-//
-
 #ifndef PSP_KURS_SPACEREMOVER_H
 #define PSP_KURS_SPACEREMOVER_H
 
 #include "string"
 #include "regex"
-#include "TextInterface.h"
+#include "IText.h"
 
 using std::string;
 
@@ -23,7 +19,7 @@ public:
     /**
      * textSource is a strategy how to get and save the text
      */
-    explicit SpaceRemover(TextInterface &textSource) : m_textSource{&textSource} {};
+    explicit SpaceRemover(IText &textSource) : m_textSource{&textSource} {};
 
     /**
      * Remove max the given number of space characters and return how many of them have been removed
@@ -33,7 +29,7 @@ public:
     int run(const string &source, int replacesLimit = ALL);
 
 protected:
-    TextInterface *m_textSource;
+    IText *m_textSource;
 };
 
 

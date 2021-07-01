@@ -1,7 +1,11 @@
 #ifndef PSP_KURS_FILEDRIVER_H
 #define PSP_KURS_FILEDRIVER_H
 
-#include "TextInterface.h"
+#include "IText.h"
+#include "unistd.h"
+#include "sys/stat.h"
+#include "fcntl.h"
+#include <cerrno>
 
 /**
  * A strategy of load/save text using regular files
@@ -9,7 +13,7 @@
  * output to be written (erase/create) to the same path
  * but .out in the very end of the filename
  */
-class FileDriver : public TextInterface {
+class FileDriver : public IText {
 public:
     string *fetchFromSource(const string &srcDescriptor) override;
 

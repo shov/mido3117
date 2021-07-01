@@ -3,12 +3,26 @@
 #include "SpaceRemover.h"
 #include "UnixSocketServer.h"
 #include "ConsoleLogger.h"
+#include "SysLogger.h"
 
 int main(int argc, char **argv) {
 
-    //Bind ConsoleLogger as the logger
-    ConsoleLogger logger;
-    ILogger *p_logger = &logger;
+    bool fg = false;
+
+    if (argc > 1 && strcmp("-fg", argv[1]) == 0) {
+        fg = true;
+    }
+
+    //Bind the logger
+    ILogger *p_logger = nullptr;
+    SysLogger sysLogger("mido_psp_kurs");
+    ConsoleLogger conLogger;
+
+    if (fg) {
+        p_logger = &conLogger;
+    } else {
+        p_logger = &sysLogger;
+    }
 
     // Bind FileDriver as a source
     FileDriver fileDriver;

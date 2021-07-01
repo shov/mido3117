@@ -5,5 +5,5 @@ void ConsoleLogger::info(const string & msg) {
 }
 
 void ConsoleLogger::error(const string & msg) {
-    std::cerr << "Info: " << msg << std::endl;
+    std::cerr << "Error: " << msg << std::endl;
 }

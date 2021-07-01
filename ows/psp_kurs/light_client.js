@@ -1,11 +1,17 @@
 'use strict'
 
-const net = require('net');
+const net = require('net')
+const SOCK_PATH = '/tmp/mido_psp_kurs.sock'
+const REPLACE_ALL = -1
+const formatRESP = (filePath, replacesLimit = REPLACE_ALL) => {
+    return `RESP ${filePath} ${replacesLimit}\n`;
+}
 
-const client = net.createConnection('/tmp/mido_psp_kurs.sock')
+const client = net.createConnection(SOCK_PATH)
+
 client.on('connect', () => {
     console.log('connected')
-    client.write(`RESP ./xy.txt 7\n`)
+    client.write(formatRESP('./xy.txt'))
 })
 
 client.on('data', (data) => {

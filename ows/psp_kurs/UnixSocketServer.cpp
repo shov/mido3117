@@ -115,8 +115,8 @@ void UnixSocketServer::processClient(int clientSock) {
                                  "got: " + body);
     }
 
-    string sourceParam = matches[0].str();
-    string limitParam = matches[1].str();
+    string sourceParam = matches[1].str();
+    string limitParam = matches[2].str();
     params[0] = &sourceParam;
     params[1] = &limitParam;
 

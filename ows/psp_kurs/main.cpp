@@ -15,25 +15,11 @@ int main(int argc, char **argv) {
     IText *p_textSource = &fileDriver;
 
     // Bind UnixSocketServer as a server
-    UnixSocketServer server;
+    UnixSocketServer server(*p_logger);
     IServer *p_server = &server;
 
+    //Start
     try {
-        //TODO move to client or else
-        // the first version is based on app arguments, so replaceLimit and inputFile
-        if (argc < 3) {
-            throw std::runtime_error("Expected at least 2 arguments: filename and replace_limit");
-        }
-
-        const string fileName(argv[1]);
-        const int replaceLimit = std::stoi(argv[2]);
-
-
-
-
-
-
-
         // Create SpaceRemover
         SpaceRemover remover(*p_textSource);
 
@@ -54,5 +40,6 @@ int main(int argc, char **argv) {
     } catch (...) {
         p_logger->error("Unexpected error occurred!");
     }
+
     return 0;
 }

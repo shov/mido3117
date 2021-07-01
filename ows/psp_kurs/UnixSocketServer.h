@@ -9,6 +9,7 @@
 #include <sys/un.h>
 #include <utility>
 #include "regex"
+#include "ILogger.h"
 
 using std::string;
 
@@ -20,6 +21,8 @@ using std::string;
  */
 class UnixSocketServer : public IServer {
 public:
+    explicit UnixSocketServer(ILogger &logger) : m_logger{&logger} {};
+
     IServer *setHandler(std::function<void(string **, string &out)>) override;
 
     void startListening() override;
@@ -30,6 +33,8 @@ protected:
     std::function<void(string **, string &out)> m_handler;
 
     void processClient(int clientSock);
+
+    ILogger *m_logger;
 };
 
 

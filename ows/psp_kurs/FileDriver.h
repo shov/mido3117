@@ -6,6 +6,8 @@
 #include "sys/stat.h"
 #include "fcntl.h"
 #include <cerrno>
+#include <stdexcept>
+#include <cstring>
 
 /**
  * A strategy of load/save text using regular files

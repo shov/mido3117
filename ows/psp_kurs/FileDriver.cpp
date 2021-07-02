@@ -1,6 +1,6 @@
 #include "FileDriver.h"
 
-extern errno_t errno;
+extern int errno;
 
 string *FileDriver::fetchFromSource(const string &srcDescriptor) {
     int fileDescriptor = open(srcDescriptor.c_str(), O_RDONLY);
@@ -33,7 +33,7 @@ string *FileDriver::fetchFromSource(const string &srcDescriptor) {
     try {
         this->lockFile(fileDescriptor, F_RDLCK);
     } catch (std::runtime_error &e) {
-        errno_t lockRrr = std::stoi(e.what());
+        int lockRrr = std::stoi(e.what());
         close(fileDescriptor);
         throw std::runtime_error("Cannot lock file for reading " + srcDescriptor
                                  + " details: " + strerror(lockRrr)
@@ -47,7 +47,7 @@ string *FileDriver::fetchFromSource(const string &srcDescriptor) {
     try {
         this->unlockFile(fileDescriptor);
     } catch (std::runtime_error &e) {
-        errno_t lockErr = std::stoi(e.what());
+        int lockErr = std::stoi(e.what());
         close(fileDescriptor);
         throw std::runtime_error("Cannot unlock file " + srcDescriptor
                                  + " details: " + strerror(lockErr)
@@ -82,7 +82,7 @@ void FileDriver::saveForSource(const string &data, const string &srcDescriptor) 
     try {
         FileDriver::lockFile(fileDescriptor, F_WRLCK);
     } catch (std::runtime_error &e) {
-        errno_t lockRrr = std::stoi(e.what());
+        int lockRrr = std::stoi(e.what());
         close(fileDescriptor);
         throw std::runtime_error("Cannot lock file " + outFile
                                  + " details: " + strerror(lockRrr)
@@ -96,7 +96,7 @@ void FileDriver::saveForSource(const string &data, const string &srcDescriptor) 
     try {
         FileDriver::unlockFile(fileDescriptor);
     } catch (std::runtime_error &e) {
-        errno_t lockErr = std::stoi(e.what());
+        int lockErr = std::stoi(e.what());
         close(fileDescriptor);
         throw std::runtime_error("Cannot unlock file " + outFile
                                  + " details: " + strerror(lockErr)

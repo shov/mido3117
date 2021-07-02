@@ -4,3 +4,4 @@
 .env
 *.log
 cmake-build-debug
+deploy.zip

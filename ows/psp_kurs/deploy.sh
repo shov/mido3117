@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# The script handles no unexpected situation and keep quite positive
+# it means before start it make sure that:
+# - there is a remote shov@ubuntu-s-1vcpu-1gb-fra1-01 I have a correct ssh key for
+# - over there are well installed unzip and g++
+# - on the host zip is installed
+# - all the permissions are ok
+
 zip -r deploy.zip .
 printf "ZIP\n"
 

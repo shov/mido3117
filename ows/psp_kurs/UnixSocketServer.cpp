@@ -110,8 +110,8 @@ void UnixSocketServer::processClient(int clientSock) {
     std::smatch matches;
 
     if (!std::regex_search(body, matches, matrix)) {
-        throw std::runtime_error("Unknown command or wrong arguments!"
-                                 "expected: RESP <filePath> <limit>\\n"
+        throw std::runtime_error("Unknown command or wrong arguments! "
+                                 "expected: RESP <filePath> <limit> "
                                  "got: " + body);
     }
 

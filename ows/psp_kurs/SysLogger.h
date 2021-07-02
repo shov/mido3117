@@ -16,7 +16,7 @@ public:
     void error(const string &msg);
 
 protected:
-    char *ident;
+    string ident;
 };
 
 

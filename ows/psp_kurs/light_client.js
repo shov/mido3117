@@ -11,7 +11,7 @@ const client = net.createConnection(SOCK_PATH)
 
 client.on('connect', () => {
     console.log('connected')
-    client.write(formatRESP('./xy.txt'))
+    client.write(formatRESP('/home/shov/xy.txt'))
 })
 
 client.on('data', (data) => {

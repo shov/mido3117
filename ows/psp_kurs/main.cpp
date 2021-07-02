@@ -1,3 +1,11 @@
+#include <unistd.h>
+#include <cstdlib>
+#include <stdexcept>
+#include <sys/stat.h>
+#include <sys/fcntl.h>
+#include <cstring>
+#include <string>
+
 #include "IText.h"
 #include "FileDriver.h"
 #include "SpaceRemover.h"
@@ -5,7 +13,10 @@
 #include "ConsoleLogger.h"
 #include "SysLogger.h"
 
-bool becomeDaemon();
+
+using std::string;
+
+void becomeDaemon();
 
 int main(int argc, char **argv) {
 
@@ -71,7 +82,7 @@ int main(int argc, char **argv) {
  * used "old-style" approach
  * @url https://man7.org/linux/man-pages/man7/daemon.7.html#DESCRIPTION
  */
-bool becomeDaemon() {
+void becomeDaemon() {
     int pid = fork();
     if (pid < 0) {
         throw std::runtime_error("Cannot fork");
@@ -107,5 +118,26 @@ bool becomeDaemon() {
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
 
-    return false;
+    // The file descriptor returned by
+    //   a successful call will be the lowest-numbered file descriptor not
+    //   currently open for the process.
+    // @url https://man7.org/linux/man-pages/man2/open.2.html#DESCRIPTION
+    // hence they are 0, 1, 2 the same as stdin, out, err
+    open("/dev/null", O_RDONLY);
+    open("/dev/null", O_RDWR);
+    open("/dev/null", O_RDWR);
+
+    FILE *pidFileD;
+    pidFileD = fopen("/var/run/mido_psp_kurs.pid", "w+");
+
+    if(!pidFileD) {
+        throw std::runtime_error("Cannot create/open PID file");
+    }
+
+    if(fprintf(pidFileD, "%u", getpid()) < 0) {
+        fclose(pidFileD);
+        throw std::runtime_error("Cannot update PID file");
+    }
+
+    fclose(pidFileD);
 }

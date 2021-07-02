@@ -1,0 +1,15 @@
+[Unit]
+Description=MIDO Education project daemon for psp by A. Shevchenko
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=idle
+KillMode=process
+Restart=always
+RestartSec=1
+SyslogIdentifier=systemd_mido_psp_kurs
+SyslogFacility=daemon
+ExecStart=/home/shov/mido_psp_kurs -fg
+
+[Install]
+WantedBy=multi-user.target

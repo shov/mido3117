@@ -1,0 +1,49 @@
+#! /bin/sh
+
+# Author: Alexandr Shevchenko <ls.shov@gmail.com>
+
+NAME=mido_psp_kurs
+DAEMON=/home/shov/mido_psp_kurs
+PIDFILE=/var/run/$NAME.pid
+
+#
+# Function that starts the daemon/service
+#
+start() {
+  if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")"; then
+    echo 'Service already running' >&2
+    return 1
+  fi
+
+  echo 'Starting service…' >&2
+  sh -c "$DAEMON"
+  echo 'Service started' >&2
+}
+
+stop() {
+  if [ ! -f "$PIDFILE" ] || ! kill -0 "$(cat "$PIDFILE")"; then
+    echo 'Service not running' >&2
+    return 1
+  fi
+  echo 'Stopping service…' >&2
+  kill -15 "$(cat "$PIDFILE")" && rm -f "$PIDFILE"
+  echo 'Service stopped' >&2
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  uninstall)
+    uninstall
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+esac

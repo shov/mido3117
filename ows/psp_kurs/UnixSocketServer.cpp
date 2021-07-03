@@ -106,7 +106,7 @@ void UnixSocketServer::processClient(int clientSock) {
     }
 
     std::string body(buf);
-    std::regex matrix(R"(^RESP ([^\s]+) ([^\s]+)\n)");
+    std::regex matrix(R"(^RESP ([^\s]+) (-?[0-9]+)\n)");
     std::smatch matches;
 
     if (!std::regex_search(body, matches, matrix)) {

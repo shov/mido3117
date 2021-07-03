@@ -26,12 +26,22 @@ function callDaemon(sourceKey, replaceLimit) {
     })
 
     client.on('data', (data) => {
-        if (String(parseInt(data)) !== String(data)) {
-            console.error(`Something goes unexpected. Response: ${data}`)
-            process.exit(1);
+        const body = data.toString().trim()
+        if (String(parseInt(body)) !== String(body)) {
+            console.error(`Something goes unexpected. Response: ${body}`)
+            process.exit(1)
         }
 
-        console.log(`OK Result: ${data} replaces made. Check the output in ${sourceKey + '.out'}`);
+        console.log(`OK Result: ${body} replaces made. Check the output in ${sourceKey + '.out'}`);
+    })
+
+    client.on('close', () => {
+        console.log('Connection closed.')
+    })
+
+    client.on('error', () => {
+        console.error(`Connection error!`)
+        process.exit(1)
     })
 }
 

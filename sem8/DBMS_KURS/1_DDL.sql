@@ -117,6 +117,7 @@ CREATE TABLE books (
     late_check_out_time TIME     DEFAULT NULL,
     fact_check_in       DATETIME DEFAULT NULL,
     fact_check_out      DATETIME DEFAULT NULL,
+    approved            BIT      DEFAULT 0            NOT NULL,
     created_at          DATETIME DEFAULT GETUTCDATE() NOT NULL,
     updated_at          DATETIME DEFAULT NULL
 );
@@ -175,14 +176,14 @@ GO
 
 CREATE TABLE bills (
     id             BIGINT IDENTITY (1,1) PRIMARY KEY,
-    book_id        BIGINT                             REFERENCES books(id) ON UPDATE CASCADE ON DELETE SET NULL,
-    bill_kind_id   BIGINT                             REFERENCES bill_kinds(id) ON UPDATE CASCADE ON DELETE SET NULL,
+    book_id        BIGINT                        REFERENCES books(id) ON UPDATE CASCADE ON DELETE SET NULL,
+    bill_kind_id   BIGINT                        REFERENCES bill_kinds(id) ON UPDATE CASCADE ON DELETE SET NULL,
     product_id     BIGINT REFERENCES products(id) ON UPDATE NO ACTION ON DELETE NO ACTION,
-    bill_status_id BIGINT                             NOT NULL REFERENCES bill_statuses(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    cost           MONEY CHECK (cost >= 0)            NOT NULL,
-    recipient_ref  NVARCHAR(255) DEFAULT NULL,
-    created_at     DATETIME      DEFAULT GETUTCDATE() NOT NULL,
-    updated_at     DATETIME      DEFAULT NULL
+    bill_status_id BIGINT                        NOT NULL REFERENCES bill_statuses(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    cost           MONEY CHECK (cost >= 0)       NOT NULL,
+    recipient_ref  NVARCHAR(255)                 NOT NULL,
+    created_at     DATETIME DEFAULT GETUTCDATE() NOT NULL,
+    updated_at     DATETIME DEFAULT NULL
 );
 
 CREATE INDEX IDX_bills_book_id ON bills(book_id);

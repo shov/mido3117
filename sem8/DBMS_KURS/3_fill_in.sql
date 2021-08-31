@@ -1,4 +1,5 @@
 USE hotel_booking;
+GO
 
 -- room kinds
 INSERT INTO room_kinds (name, size)
@@ -37,6 +38,7 @@ VALUES (N'Sport', 3, N'улица Якуба Коласа, 35', N'+375 555 55 55
  GEOGRAPHY::STGeomFromText('POINT(54.694357 25.282185)', 4326)),
 (N'Radisson Blue, Konstitucijos', 3, N'Konstitucijos pr. 20, Vilnius 09308, Lithuania', N'+375 555 77 77',
  GEOGRAPHY::STGeomFromText('POINT(54.695284 25.275107)', 4326))
+GO
 
 -- fill in rooms by hotel name
 CREATE OR
@@ -52,31 +54,31 @@ BEGIN
         BEGIN TRY
             IF @number < 1
                 BEGIN
-                    RAISERROR ('Cannot insert less than 1 room', 16, 1);
+                    THROW 51000, 'Cannot insert less than 1 room', 1;
                 END;
             IF @floor < 1
                 BEGIN
-                    RAISERROR ('Floor must be a positive', 16, 1);
+                    THROW 51000, 'Floor must be a positive', 1;
                 END;
 
             IF @room_price < 0
                 BEGIN
-                    RAISERROR ('Price must not be negative', 16, 1);
+                    THROW 51000, 'Price must not be negative', 1;
                 END;
 
             IF (@room_options IS NOT NULL) AND (ISJSON(@room_options) < 1)
                 BEGIN
-                    RAISERROR ('Options must be NULL a valid JSON string %i', 16, 1);
+                    THROW 51000, 'Options must be NULL a valid JSON string', 1;
                 END;
 
             IF NOT EXISTS(SELECT * FROM hotels WHERE name = @hotel_name)
                 BEGIN
-                    RAISERROR ('Hotel %s not found', 16, 1, @hotel_name);
+                    THROW 51000, 'Hotel not found', 1;
                 END;
 
             IF NOT EXISTS(SELECT * FROM room_kinds WHERE name = @room_kind_name)
                 BEGIN
-                    RAISERROR ('Room kind %s not found', 16, 1, @room_kind_name);
+                    THROW 51000, 'Room kind not found', 1;
                 END;
 
             DECLARE @hotel_id BIGINT = (SELECT TOP 1 id FROM hotels WHERE name = @hotel_name);
@@ -94,10 +96,7 @@ BEGIN
         BEGIN CATCH
             ROLLBACK TRANSACTION;
 
-            DECLARE @msg NVARCHAR(MAX) = ERROR_MESSAGE();
-            DECLARE @sev INT = ERROR_SEVERITY();
-            DECLARE @state INT = ERROR_STATE();
-            RAISERROR ('%s', @sev, @state, @msg );
+            THROW;
         END CATCH
 END;
 GO

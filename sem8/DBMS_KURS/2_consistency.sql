@@ -1,9 +1,143 @@
 USE hotel_booking;
 GO
 
--- book cannot exists without a guest and without at least one room_rent bill out of a transaction
+CREATE OR ALTER TRIGGER TR_hotels_after_update
+    ON hotels
+    AFTER UPDATE AS
+    SET NOCOUNT ON;
+    DECLARE
+        @ts DATETIME = GETUTCDATE();
+    UPDATE hotels
+    SET updated_at = @ts
+    WHERE id IN (SELECT id FROM inserted);
+GO
 
-CREATE OR ALTER TRIGGER TR_books_insert_update
+CREATE OR ALTER TRIGGER TR_room_kinds_after_update
+    ON room_kinds
+    AFTER UPDATE AS
+    SET NOCOUNT ON;
+    DECLARE
+        @ts DATETIME = GETUTCDATE();
+    UPDATE room_kinds
+    SET updated_at = @ts
+    WHERE id IN (SELECT id FROM inserted);
+GO
+
+CREATE OR ALTER TRIGGER TR_rooms_after_update
+    ON rooms
+    AFTER UPDATE AS
+    SET NOCOUNT ON;
+    DECLARE
+        @ts DATETIME = GETUTCDATE();
+    UPDATE rooms
+    SET updated_at = @ts
+    WHERE id IN (SELECT id FROM inserted);
+GO
+
+CREATE OR ALTER TRIGGER TR_products_after_update
+    ON products
+    AFTER UPDATE AS
+    SET NOCOUNT ON;
+    DECLARE
+        @ts DATETIME = GETUTCDATE();
+    UPDATE products
+    SET updated_at = @ts
+    WHERE id IN (SELECT id FROM inserted);
+GO
+
+CREATE OR ALTER TRIGGER TR_products_delete
+    ON products
+    INSTEAD OF DELETE AS
+    SET NOCOUNT ON;
+    UPDATE bills
+    SET product_id = NULL
+    WHERE product_id IN (SELECT id FROM deleted);
+    DELETE
+    FROM products
+    WHERE id IN (SELECT id FROM deleted);
+GO
+
+CREATE OR ALTER TRIGGER TR_books_after_update
+    ON books
+    AFTER UPDATE AS
+    SET NOCOUNT ON;
+    DECLARE
+        @ts DATETIME = GETUTCDATE();
+    UPDATE books
+    SET updated_at = @ts
+    WHERE id IN (SELECT id FROM inserted);
+GO
+
+CREATE OR ALTER TRIGGER TR_bill_statuses_after_update
+    ON bill_statuses
+    AFTER UPDATE AS
+    SET NOCOUNT ON;
+    DECLARE
+        @ts DATETIME = GETUTCDATE();
+    UPDATE bill_statuses
+    SET updated_at = @ts
+    WHERE id IN (SELECT id FROM inserted);
+GO
+
+CREATE OR ALTER TRIGGER TR_bill_kinds_after_update
+    ON bill_kinds
+    AFTER UPDATE AS
+    SET NOCOUNT ON;
+    DECLARE
+        @ts DATETIME = GETUTCDATE();
+    UPDATE bill_kinds
+    SET updated_at = @ts
+    WHERE id IN (SELECT id FROM inserted);
+GO
+
+CREATE OR ALTER TRIGGER TR_bills_after_update
+    ON bills
+    AFTER UPDATE AS
+    SET NOCOUNT ON;
+    DECLARE
+        @ts DATETIME = GETUTCDATE();
+    UPDATE bills
+    SET updated_at = @ts
+    WHERE id IN (SELECT id FROM inserted);
+GO
+
+CREATE OR ALTER TRIGGER TR_guests_after_update
+    ON guests
+    AFTER UPDATE AS
+    SET NOCOUNT ON;
+    DECLARE
+        @ts DATETIME = GETUTCDATE();
+    UPDATE guests
+    SET updated_at = @ts
+    WHERE id IN (SELECT id FROM inserted);
+GO
+
+
+CREATE OR ALTER TRIGGER TR_guest_kinds_after_update
+    ON guest_kinds
+    AFTER UPDATE AS
+    SET NOCOUNT ON;
+    DECLARE
+        @ts DATETIME = GETUTCDATE();
+    UPDATE guest_kinds
+    SET updated_at = @ts
+    WHERE id IN (SELECT id FROM inserted);
+GO
+
+CREATE OR ALTER TRIGGER TR_book_guests_after_update
+    ON book_guests
+    AFTER UPDATE AS
+    SET NOCOUNT ON;
+    DECLARE
+        @ts DATETIME = GETUTCDATE();
+    UPDATE book_guests
+    SET updated_at = @ts
+    WHERE id IN (SELECT id FROM inserted);
+GO
+
+-- book be approved without a guest and without at least one room_rent bill
+
+CREATE OR ALTER TRIGGER TR_books_after_insert_update
     ON books
     AFTER INSERT, UPDATE
     AS
@@ -48,12 +182,12 @@ GO
 -- book_guests registered_by cannot be inserted if one already exists
 -- book_guests regular cannot be inserted if no responsible
 -- book_guests responsible cannot be removed if there are at leas one regular
---    CREATE OR ALTER TRIGGER TR_book_guests_insert ON book_guests INSTEAD OF INSERT
+
 
 
 -- a bill cannot be inserted if a book has neither responsible nor registered_by guest
 -- a bill cannot be inserted with not pending status
--- a bill cannot be updated if paid or canceled if a book has neither responsible nor registered_by guest nor book is approved
+-- a bill cannot be updated as paid or canceled if a book has neither responsible nor registered_by guest nor book is approved
 -- a bill cannot be updated as paid without passport_ref, it must belong a responsible or else be of registered_by and book must be approved
 -- a bill cannot be updated as paid with registered by if responsible exists and book must be approved
 -- a bill cannot be inserted with product id if kind of it is rent_room

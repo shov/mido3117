@@ -12,17 +12,6 @@ CREATE TABLE hotels (
 );
 GO
 
-CREATE OR ALTER TRIGGER TR_hotels_after_update
-    ON hotels
-    AFTER UPDATE AS
-    SET NOCOUNT ON;
-    DECLARE
-        @ts DATETIME = GETUTCDATE();
-    UPDATE hotels
-    SET updated_at = @ts
-    WHERE id IN (SELECT id FROM inserted);
-GO
-
 CREATE TABLE room_kinds (
     id         BIGINT IDENTITY (1,1) PRIMARY KEY,
     name       NVARCHAR(255)                 NOT NULL UNIQUE,
@@ -30,17 +19,6 @@ CREATE TABLE room_kinds (
     created_at DATETIME DEFAULT GETUTCDATE() NOT NULL,
     updated_at DATETIME DEFAULT NULL
 );
-GO
-
-CREATE OR ALTER TRIGGER TR_room_kinds_after_update
-    ON room_kinds
-    AFTER UPDATE AS
-    SET NOCOUNT ON;
-    DECLARE
-        @ts DATETIME = GETUTCDATE();
-    UPDATE room_kinds
-    SET updated_at = @ts
-    WHERE id IN (SELECT id FROM inserted);
 GO
 
 CREATE TABLE rooms (
@@ -63,17 +41,6 @@ CREATE INDEX IDX_rooms_hotel_id ON rooms(hotel_id);
 CREATE INDEX IDX_rooms_room_kind_id ON rooms(room_kind_id);
 GO
 
-CREATE OR ALTER TRIGGER TR_rooms_after_update
-    ON rooms
-    AFTER UPDATE AS
-    SET NOCOUNT ON;
-    DECLARE
-        @ts DATETIME = GETUTCDATE();
-    UPDATE rooms
-    SET updated_at = @ts
-    WHERE id IN (SELECT id FROM inserted);
-GO
-
 CREATE TABLE products (
     id         BIGINT IDENTITY (1,1) PRIMARY KEY,
     hotel_id   BIGINT                        REFERENCES hotels(id) ON UPDATE CASCADE ON DELETE SET NULL,
@@ -84,29 +51,6 @@ CREATE TABLE products (
     updated_at DATETIME DEFAULT NULL
 );
 CREATE INDEX IDX_products_hotel_id ON rooms(hotel_id);
-GO
-
-CREATE OR ALTER TRIGGER TR_products_after_update
-    ON products
-    AFTER UPDATE AS
-    SET NOCOUNT ON;
-    DECLARE
-        @ts DATETIME = GETUTCDATE();
-    UPDATE products
-    SET updated_at = @ts
-    WHERE id IN (SELECT id FROM inserted);
-GO
-
-CREATE OR ALTER TRIGGER TR_products_delete
-    ON products
-    INSTEAD OF DELETE AS
-    SET NOCOUNT ON;
-    UPDATE bills
-    SET product_id = NULL
-    WHERE product_id IN (SELECT id FROM deleted);
-    DELETE
-    FROM products
-    WHERE id IN (SELECT id FROM deleted);
 GO
 
 CREATE TABLE books (
@@ -124,34 +68,12 @@ CREATE TABLE books (
 CREATE INDEX IDX_books_room_id ON rooms(id);
 GO
 
-CREATE OR ALTER TRIGGER TR_books_after_update
-    ON books
-    AFTER UPDATE AS
-    SET NOCOUNT ON;
-    DECLARE
-        @ts DATETIME = GETUTCDATE();
-    UPDATE books
-    SET updated_at = @ts
-    WHERE id IN (SELECT id FROM inserted);
-GO
-
 CREATE TABLE bill_statuses (
     id         BIGINT IDENTITY (1,1) PRIMARY KEY,
     name       NVARCHAR(255)                 NOT NULL UNIQUE,
     created_at DATETIME DEFAULT GETUTCDATE() NOT NULL,
     updated_at DATETIME DEFAULT NULL
 );
-GO
-
-CREATE OR ALTER TRIGGER TR_bill_statuses_after_update
-    ON bill_statuses
-    AFTER UPDATE AS
-    SET NOCOUNT ON;
-    DECLARE
-        @ts DATETIME = GETUTCDATE();
-    UPDATE bill_statuses
-    SET updated_at = @ts
-    WHERE id IN (SELECT id FROM inserted);
 GO
 
 CREATE TABLE bill_kinds (
@@ -161,18 +83,6 @@ CREATE TABLE bill_kinds (
     updated_at DATETIME DEFAULT NULL
 );
 GO
-
-CREATE OR ALTER TRIGGER TR_bill_kinds_after_update
-    ON bill_kinds
-    AFTER UPDATE AS
-    SET NOCOUNT ON;
-    DECLARE
-        @ts DATETIME = GETUTCDATE();
-    UPDATE bill_kinds
-    SET updated_at = @ts
-    WHERE id IN (SELECT id FROM inserted);
-GO
-
 
 CREATE TABLE bills (
     id             BIGINT IDENTITY (1,1) PRIMARY KEY,
@@ -192,17 +102,6 @@ CREATE INDEX IDX_bills_product_id ON bills(product_id);
 CREATE INDEX IDX_bills_bill_status_id ON bills(bill_status_id);
 GO
 
-CREATE OR ALTER TRIGGER TR_bills_after_update
-    ON bills
-    AFTER UPDATE AS
-    SET NOCOUNT ON;
-    DECLARE
-        @ts DATETIME = GETUTCDATE();
-    UPDATE bills
-    SET updated_at = @ts
-    WHERE id IN (SELECT id FROM inserted);
-GO
-
 CREATE TABLE guests (
     id            BIGINT IDENTITY (1,1) PRIMARY KEY,
     name          NVARCHAR(255)                      NOT NULL,
@@ -214,34 +113,12 @@ CREATE TABLE guests (
 );
 GO
 
-CREATE OR ALTER TRIGGER TR_guests_after_update
-    ON guests
-    AFTER UPDATE AS
-    SET NOCOUNT ON;
-    DECLARE
-        @ts DATETIME = GETUTCDATE();
-    UPDATE guests
-    SET updated_at = @ts
-    WHERE id IN (SELECT id FROM inserted);
-GO
-
 CREATE TABLE guest_kinds (
     id         BIGINT IDENTITY (1,1) PRIMARY KEY,
     name       NVARCHAR(255)                 NOT NULL UNIQUE,
     created_at DATETIME DEFAULT GETUTCDATE() NOT NULL,
     updated_at DATETIME DEFAULT NULL
 );
-GO
-
-CREATE OR ALTER TRIGGER TR_guest_kinds_after_update
-    ON guest_kinds
-    AFTER UPDATE AS
-    SET NOCOUNT ON;
-    DECLARE
-        @ts DATETIME = GETUTCDATE();
-    UPDATE guest_kinds
-    SET updated_at = @ts
-    WHERE id IN (SELECT id FROM inserted);
 GO
 
 CREATE TABLE book_guests (
@@ -259,13 +136,3 @@ CREATE INDEX IDX_book_guests_guest_id ON book_guests(guest_id);
 CREATE INDEX IDX_book_guests_guest_kind_id ON book_guests(guest_kind_id);
 GO
 
-CREATE OR ALTER TRIGGER TR_book_guests_after_update
-    ON book_guests
-    AFTER UPDATE AS
-    SET NOCOUNT ON;
-    DECLARE
-        @ts DATETIME = GETUTCDATE();
-    UPDATE book_guests
-    SET updated_at = @ts
-    WHERE id IN (SELECT id FROM inserted);
-GO

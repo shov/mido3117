@@ -175,3 +175,34 @@ EXEC fill_rooms_for_hotel N'Radisson Blue, Konstitucijos', N'King', 1, 15,
 
 
 -- fill in products by hotel name
+CREATE OR
+ALTER PROCEDURE fill_products_for_hotel @hotel_name   NVARCHAR(255),
+                                        @product_name NVARCHAR(255),
+                                        @price        MONEY
+AS
+BEGIN
+    DECLARE @hotel_id_res TABLE (
+        id BIGINT
+    );
+    INSERT INTO @hotel_id_res SELECT id FROM hotels WHERE name = @hotel_name;
+
+    IF NOT EXISTS(SELECT * FROM @hotel_id_res)
+        BEGIN
+            THROW 51000, 'Hotel not found!', 1;
+        END;
+
+    DECLARE @hotel_id BIGINT;
+    SET @hotel_id = (SELECT TOP 1 id FROM @hotel_id_res);
+
+    IF EXISTS(SELECT * FROM products WHERE hotel_id = @hotel_id AND name = @product_name)
+        BEGIN
+            THROW 51000, 'Product with this name is already existing!', 1;
+        END
+
+    INSERT INTO products (hotel_id, name, price) VALUES (@hotel_id, @product_name, @price);
+END;
+GO
+
+EXEC fill_products_for_hotel N'Sport', N'Breakfast', 40;
+EXEC fill_products_for_hotel N'Sport', N'Cola 0.5', 8;
+EXEC fill_products_for_hotel N'Sport', N'Parking day', 50;

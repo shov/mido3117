@@ -180,18 +180,20 @@ BEGIN
         OUTPUT inserted.id INTO @booked_record_id_result
         VALUES (@room_id, @check_in_date, @check_out_date, @late_check_in_time, 0);
 
-        DECLARE @booked_record_id BIGINT;
-        DECLARE @guest_kind_id BIGINT;
-        DECLARE @registered_by_id BIGINT;
+        DECLARE
+            @booked_record_id BIGINT,
+            @guest_kind_id BIGINT,
+            @registered_by_id BIGINT;
         SET @booked_record_id = (SELECT TOP 1 id FROM @booked_record_id_result);
         SET @registered_by_id = (SELECT TOP 1 id FROM @registered_by_id_result);
         SET @guest_kind_id = (SELECT TOP 1 id FROM guest_kinds WHERE name = N'registered_by');
 
         INSERT INTO book_guests (book_id, guest_id, guest_kind_id) VALUES (@booked_record_id, @registered_by_id, @guest_kind_id)
 
-        DECLARE @bill_kind_id BIGINT;
-        DECLARE @bill_status_id BIGINT;
-        DECLARE @room_price MONEY;
+        DECLARE
+            @bill_kind_id BIGINT,
+            @bill_status_id BIGINT,
+            @room_price MONEY;
         SET @bill_kind_id = (SELECT TOP 1 id FROM bill_kinds WHERE name = N'room_rent');
         SET @bill_status_id = (SELECT TOP 1 id FROM bill_statuses WHERE name = N'pending');
         SET @room_price = (SELECT TOP 1 night_price FROM rooms WHERE id = @room_id);
@@ -253,16 +255,15 @@ BEGIN
                         @passport_data);
             END
 
-        DECLARE @guest_id BIGINT;
+        DECLARE
+            @guest_id BIGINT,
+            @g_resp_id BIGINT,
+            @g_regu_id BIGINT,
+            @guest_kind_id BIGINT;
+
         SET @guest_id = (SELECT TOP 1 id FROM @guest_found_result);
-
-        DECLARE @g_resp_id BIGINT;
         SET @g_resp_id = (SELECT id FROM guest_kinds WHERE name = N'responsible');
-
-        DECLARE @g_regu_id BIGINT;
         SET @g_regu_id = (SELECT id FROM guest_kinds WHERE name = N'regular');
-
-        DECLARE @guest_kind_id BIGINT;
         SET @guest_kind_id = IIF(@is_responsible = 1, @g_resp_id, @g_regu_id);
 
         -- responsible must be only one and registered first:
@@ -276,15 +277,23 @@ BEGIN
                 THROW 51000, 'Responsible guest must be checked-out first!', 1;
             END
 
+        -- the guest cannot be checked-in twice as responsible either regular (but can as registered_by)
+        IF EXISTS(SELECT * FROM book_guests WHERE book_id = @book_id AND guest_id = @guest_id AND guest_kind_id IN (@g_resp_id, @g_regu_id))
+            BEGIN
+                THROW 51000, 'This guest already has checked-in!', 1;
+            END
+
         -- room size limit check:
-        DECLARE @registered_count TINYINT = 0;
+        DECLARE
+            @registered_count TINYINT = 0,
+            @room_size TINYINT;
+
         SET @registered_count = (SELECT CAST(count(*) AS TINYINT)
                                  FROM book_guests bg
                                           JOIN guest_kinds gk ON gk.id = bg.guest_kind_id
                                  WHERE book_id = @book_id AND gk.id IN (@g_resp_id, @g_regu_id));
 
-        DECLARE @room_size TINYINT;
-        SET @room_size = (SELECT rk.size
+        SET @room_size = (SELECT TOP 1 rk.size
                           FROM room_kinds rk
                                    JOIN rooms r ON r.room_kind_id = rk.id
                                    JOIN books b ON b.room_id = r.id
@@ -302,6 +311,9 @@ BEGIN
         IF (@is_responsible = 1)
             BEGIN
                 UPDATE bills SET recipient_ref = @passport_data WHERE book_id = @book_id;
+
+                -- if it's first guest (the first must be responsible) set checkin fatcts
+                UPDATE books SET fact_check_in = GETUTCDATE() WHERE id = @book_id;
             END
         COMMIT TRANSACTION;
     END TRY
@@ -320,7 +332,86 @@ ALTER PROCEDURE order_product @book_id      BIGINT,
                               @amount       TINYINT = 1
 AS
 BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        -- the book must exists and guests can check-in only from check-in date
+        -- and not later than the midnight before checking-out:
+        IF @book_id IS NULL OR NOT EXISTS(SELECT *
+                                          FROM books b
+                                          WHERE b.id = @book_id AND CAST(GETUTCDATE() AS DATE) < b.check_out_date AND
+                                              CAST(GETUTCDATE() AS DATE) >= b.check_in_date AND b.approved = 1)
+            BEGIN
+                THROW 51000, 'Invalid book or you are not allowed to order anything now', 1;
+            END;
 
+        -- if product exists in this hotel
+        DECLARE
+            @hotel_id BIGINT,
+            @product_id BIGINT,
+            @price MONEY;
+
+        SET @hotel_id = (SELECT TOP 1 h.id
+                         FROM hotels h
+                                  JOIN rooms r ON h.id = r.hotel_id
+                                  JOIN books b ON r.id = b.room_id
+                         WHERE b.id = @book_id);
+
+        IF @hotel_id IS NULL
+            BEGIN
+                THROW 51000, 'Hotel not found', 1;
+            END
+
+        SET @product_id = (SELECT TOP 1 id FROM products WHERE hotel_id = @hotel_id AND name = @product_name);
+
+        IF @product_id IS NULL
+            BEGIN
+                THROW 51000, 'Product not found', 1;
+            END
+
+        SET @price = (SELECT TOP 1 price FROM products WHERE id = @product_id);
+
+        -- the book must have responsible guests to order
+        DECLARE @resp_guest_id_result TABLE (
+            id BIGINT
+        );
+
+        DECLARE
+            @g_resp_id BIGINT,
+            @resp_guest_passport_ref NVARCHAR(255);
+
+        SET @g_resp_id = (SELECT TOP 1 id FROM guest_kinds WHERE name = N'responsible');
+        INSERT INTO @resp_guest_id_result
+        SELECT TOP 1 id
+        FROM book_guests
+        WHERE book_id = @book_id AND guest_kind_id = @g_resp_id;
+
+        IF NOT EXISTS(SELECT * FROM @resp_guest_id_result)
+            BEGIN
+                THROW 51000, 'Cannot order, the book has no responsible guest!', 1;
+            END
+
+        SET @resp_guest_passport_ref = (SELECT TOP 1 passport_data
+                                        FROM guests g
+                                                 JOIN book_guests bg ON g.id = bg.guest_id
+                                                 JOIN @resp_guest_id_result r ON r.id = bg.id);
+
+        DECLARE
+            @bill_status_id BIGINT,
+            @bill_kind_id BIGINT,
+            @cost MONEY = CAST(@price * @amount AS MONEY);
+
+        SET @bill_status_id = (SELECT TOP 1 id FROM bill_statuses WHERE name = N'pending');
+        SET @bill_kind_id = (SELECT TOP 1 id FROM bill_kinds WHERE name = N'product_purchase');
+
+        INSERT INTO bills (book_id, bill_kind_id, product_id, bill_status_id, cost, recipient_ref)
+        VALUES (@book_id, @bill_kind_id, @product_id, @bill_status_id, @cost, @resp_guest_passport_ref);
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
 END;
 GO
 
@@ -332,11 +423,30 @@ ALTER FUNCTION list_not_paid_bills()
         book_id        BIGINT,
         check_out_date DATE,
         cost           MONEY,
-        passport_data  NVARCHAR(255)
+        recipient_ref  NVARCHAR(255),
+        name           NVARCHAR(255)
     ) AS
 BEGIN
-    INSERT INTO @res_table (hotel_id, book_id, check_out_date, cost, passport_data)
-    VALUES (NULL, NULL, NULL, NULL, NULL)
+    INSERT INTO @res_table
+    SELECT h.id AS hotel_id,
+        b.id AS book_id,
+        b.check_out_date AS check_out_date,
+        bl.cost AS cost,
+        bl.recipient_ref AS recipient_ref,
+        IIF(
+                blk.name = 'room_rent',
+                CONCAT(N'Room rent: ', IIF(r.id IS NULL, '[data lost]', CAST(r.id AS NVARCHAR(255)))),
+                IIF(bl.product_id IS NULL,
+                    N'Unknown product',
+                    (SELECT TOP 1 name FROM products p WHERE p.id = bl.product_id)
+                    )
+            ) AS name
+    FROM bills bl
+             JOIN bill_statuses bls ON bls.id = bl.bill_status_id AND bls.name = N'pending'
+             JOIN bill_kinds blk ON bl.bill_kind_id = blk.id
+             LEFT JOIN books b ON bl.book_id = b.id
+             LEFT JOIN rooms r ON r.id = b.room_id
+             LEFT JOIN hotels h ON h.id = r.hotel_id
     RETURN
 END;
 GO
@@ -346,7 +456,41 @@ CREATE OR
 ALTER PROCEDURE check_out @book_id BIGINT
 AS
 BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
 
+        -- if it exists and approved, if that's not checked-out yet
+        IF NOT EXISTS(SELECT *
+                      FROM books b
+                      WHERE b.id = @book_id AND b.approved = 1 AND fact_check_out IS NULL)
+            BEGIN
+                THROW 51000, 'Book not found!', 1;
+            END
+
+        -- if it's after check-in we can pay else we shall cancel. Check-in detects by checked-in guests
+        DECLARE @bill_status_id BIGINT;
+        SET @bill_status_id = (
+            SELECT TOP 1 id
+            FROM bill_statuses
+            WHERE name = (IIF(
+                        (SELECT count(*)
+                         FROM book_guests bg
+                                  JOIN guest_kinds gk ON bg.guest_kind_id = gk.id
+                         WHERE bg.book_id = @book_id AND gk.name <> N'registered_by') > 0,
+                        N'paid',
+                        N'canceled'
+                ))
+        );
+
+        UPDATE bills SET bill_status_id = @bill_status_id WHERE book_id = @book_id;
+        UPDATE books SET fact_check_out = GETUTCDATE() WHERE id = @book_id;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
 END;
 GO
 
@@ -355,6 +499,7 @@ CREATE OR
 ALTER FUNCTION list_who_have_check_out_tomorrow()
     RETURNS @res_table TABLE (
         book_id                     BIGINT,
+        check_out_date              DATE,
         responsible_guest_id        BIGINT,
         responsible_guest_full_name NVARCHAR(MAX),
         recipient_ref               NVARCHAR(255),
@@ -362,6 +507,45 @@ ALTER FUNCTION list_who_have_check_out_tomorrow()
     )
 AS
 BEGIN
+    INSERT INTO @res_table
+    SELECT b.id AS book_id,
+        b.check_out_date AS check_out_date,
+        g.id AS responsible_guest_id,
+        CONCAT(g.name, IIF(g.middle_name IS NULL, N' ', CONCAT(N' ', g.middle_name, N' ')), g.sure_name) AS responsible_guest_full_name,
+        g.passport_data AS recipient_ref,
+        (SELECT sum(cost) FROM bills WHERE bills.book_id = b.id) AS total_bill
+    FROM books b
+        -- if it's canceled / paid, that means an early chek-out (besides of fact_check_out)
+             JOIN (SELECT DISTINCT book_id FROM list_not_paid_bills()) unpaid ON unpaid.book_id = b.id
+             JOIN guests g ON g.id = dbo.get_responsible_guest_id(b.id)
+    WHERE b.approved = 1
+        -- it's tomorrow or even back past, they must be checked-out ASAP!
+            AND b.check_out_date <= CAST(DATEADD(DAY, 1, GETUTCDATE()) AS DATE) AND b.fact_check_out IS NULL
+    RETURN
+END
+GO
 
+-- a helper to get responsible guest with a fallback to registered_by
+CREATE OR
+ALTER FUNCTION get_responsible_guest_id(@book_id BIGINT)
+    RETURNS BIGINT
+AS
+BEGIN
+    DECLARE @resp_id BIGINT;
+    SET @resp_id = (SELECT TOP 1 g.id
+                    FROM guests g
+                             JOIN book_guests bg ON g.id = bg.guest_id
+                             JOIN guest_kinds gk ON gk.id = bg.guest_kind_id
+                    WHERE bg.book_id = @book_id AND gk.name = N'responsible');
+    IF @resp_id IS NULL
+        BEGIN
+            SET @resp_id = (SELECT TOP 1 g.id
+                            FROM guests g
+                                     JOIN book_guests bg ON g.id = bg.guest_id
+                                     JOIN guest_kinds gk ON gk.id = bg.guest_kind_id
+                            WHERE bg.book_id = @book_id AND gk.name = N'registered_by');
+        END
+
+    RETURN @resp_id
 END
 GO

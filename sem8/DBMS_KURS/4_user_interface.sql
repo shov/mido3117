@@ -198,7 +198,8 @@ BEGIN
         SET @bill_status_id = (SELECT TOP 1 id FROM bill_statuses WHERE name = N'pending');
         SET @room_price = (SELECT TOP 1 night_price FROM rooms WHERE id = @room_id);
         INSERT INTO bills (book_id, bill_kind_id, product_id, bill_status_id, cost, recipient_ref)
-        VALUES (@booked_record_id, @bill_kind_id, NULL, @bill_status_id, @room_price, @registered_by_passport_data);
+        VALUES (@booked_record_id, @bill_kind_id, NULL, @bill_status_id, @room_price * DATEDIFF(DAY, @check_in_date, @check_out_date),
+                @registered_by_passport_data);
 
         UPDATE books SET approved = 1 WHERE id = @booked_record_id;
         COMMIT TRANSACTION;
@@ -513,7 +514,7 @@ BEGIN
         g.id AS responsible_guest_id,
         CONCAT(g.name, IIF(g.middle_name IS NULL, N' ', CONCAT(N' ', g.middle_name, N' ')), g.sure_name) AS responsible_guest_full_name,
         g.passport_data AS recipient_ref,
-        (SELECT sum(cost) FROM bills WHERE bills.book_id = b.id) AS total_bill
+            (SELECT sum(cost) FROM bills WHERE bills.book_id = b.id) AS total_bill
     FROM books b
         -- if it's canceled / paid, that means an early chek-out (besides of fact_check_out)
              JOIN (SELECT DISTINCT book_id FROM list_not_paid_bills()) unpaid ON unpaid.book_id = b.id

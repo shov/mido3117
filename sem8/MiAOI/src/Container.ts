@@ -1,7 +1,7 @@
 export class Container {
     private store: TDict = {}
 
-    public register(name: string, resolver: any, deps = []) {
+    public register(name: string, resolver: any, deps: string[] = []) {
         this.store[name] = {
             resolver, deps
         }

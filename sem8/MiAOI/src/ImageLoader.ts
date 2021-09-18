@@ -1,10 +1,14 @@
 // Image loader
 import {EventBus} from 'EventBus';
+import {ImageModifier} from './ImageModifier'
 
 export class ImageLoader {
-    protected _loadBt: HTMLInputElement = document.querySelector('#image_file')!
+    protected _loadBt: HTMLInputElement = document.querySelector('#x_image_file')!
 
-    constructor(protected _bus: EventBus) {
+    constructor(
+        protected _bus: EventBus,
+        protected _imageModifier: ImageModifier,
+    ) {
         this._loadBt.addEventListener('change', this._loadImage.bind(this))
     }
 
@@ -53,6 +57,10 @@ export class ImageLoader {
             canvas.height = img.height
             const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!
             ctx.drawImage(img, 0, 0)
+            this._imageModifier.initWith(ctx)
+
+            // @ts-ignore
+            this._loadBt.value = null
         } catch (e: any) {
             this._bus.emit('error', e.message)
         }

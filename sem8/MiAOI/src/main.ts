@@ -3,11 +3,13 @@
 import {EventBus} from 'EventBus'
 import {Container} from 'Container'
 import {ImageLoader} from 'ImageLoader'
+import {ImageModifier} from './ImageModifier'
 
 // DI container
 const container = new Container()
 container.registerObject('bus', new EventBus())
-container.register('ImageLoader', ImageLoader)
+container.register('ImageModifier', ImageModifier, ['bus'])
+container.register('ImageLoader', ImageLoader, ['bus', 'ImageModifier'])
 
 // Start
 try {

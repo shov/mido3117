@@ -69,14 +69,86 @@ define("EventBus", ["require", "exports"], function (require, exports) {
     }());
     exports.EventBus = EventBus;
 });
+define("ImageModifier", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ImageModifier = void 0;
+    var ImageModifier = (function () {
+        function ImageModifier(_bus) {
+            this._bus = _bus;
+            this._dependedButtons = [];
+            var xResetBt = document.querySelector('#x_reset');
+            xResetBt.addEventListener('click', this._xReset.bind(this));
+            this._dependedButtons.push(xResetBt);
+            var xInvertBt = document.querySelector('#x_invert');
+            xInvertBt.addEventListener('click', this._xInvert.bind(this));
+            this._dependedButtons.push(xInvertBt);
+            var xGrayScaleBt = document.querySelector('#x_grayscale');
+            xGrayScaleBt.addEventListener('click', this._xGrayScale.bind(this));
+            this._dependedButtons.push(xGrayScaleBt);
+        }
+        ImageModifier.prototype.initWith = function (ctx) {
+            this._ctx = ctx;
+            this._originImageData = ctx
+                .getImageData(0, 0, this._ctx.canvas.width, this._ctx.canvas.height);
+            this._dependedButtons.forEach(function (bt) {
+                bt.classList.remove('_disabled');
+            });
+            return this;
+        };
+        ImageModifier.prototype._xReset = function () {
+            if (!this._ctx || !this._originImageData) {
+                return;
+            }
+            this._ctx.putImageData(this._originImageData, 0, 0);
+        };
+        ImageModifier.prototype._xInvert = function () {
+            if (!this._ctx) {
+                return;
+            }
+            var canvas = this._ctx.canvas;
+            var imageData = this._ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var data = imageData.data;
+            for (var i = 0; i < data.length; i += 4) {
+                data[i] = 255 - data[i];
+                data[i + 1] = 255 - data[i + 1];
+                data[i + 2] = 255 - data[i + 2];
+            }
+            this._ctx.putImageData(imageData, 0, 0);
+        };
+        ImageModifier.prototype._xGrayScale = function () {
+            if (!this._ctx) {
+                return;
+            }
+            var canvas = this._ctx.canvas;
+            var imageData = this._ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var data = imageData.data;
+            for (var i = 0; i < data.length; i += 4) {
+                var avg = Math.floor((data[i] + data[i + 1] + data[i + 2]) / 3);
+                data[i] = avg;
+                data[i + 1] = avg;
+                data[i + 2] = avg;
+            }
+            this._ctx.putImageData(imageData, 0, 0);
+        };
+        ImageModifier.prototype._mustBeInitialized = function () {
+            if (!this._ctx) {
+                throw new Error("Image modifier is not initialized yet!");
+            }
+        };
+        return ImageModifier;
+    }());
+    exports.ImageModifier = ImageModifier;
+});
 define("ImageLoader", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ImageLoader = void 0;
     var ImageLoader = (function () {
-        function ImageLoader(_bus) {
+        function ImageLoader(_bus, _imageModifier) {
             this._bus = _bus;
-            this._loadBt = document.querySelector('#image_file');
+            this._imageModifier = _imageModifier;
+            this._loadBt = document.querySelector('#x_image_file');
             this._loadBt.addEventListener('change', this._loadImage.bind(this));
         }
         ImageLoader.prototype._loadImage = function () {
@@ -121,6 +193,8 @@ define("ImageLoader", ["require", "exports"], function (require, exports) {
                 canvas.height = img.height;
                 var ctx = canvas.getContext("2d");
                 ctx.drawImage(img, 0, 0);
+                this._imageModifier.initWith(ctx);
+                this._loadBt.value = null;
             }
             catch (e) {
                 this._bus.emit('error', e.message);
@@ -130,12 +204,13 @@ define("ImageLoader", ["require", "exports"], function (require, exports) {
     }());
     exports.ImageLoader = ImageLoader;
 });
-define("main", ["require", "exports", "EventBus", "Container", "ImageLoader"], function (require, exports, EventBus_1, Container_1, ImageLoader_1) {
+define("main", ["require", "exports", "EventBus", "Container", "ImageLoader", "ImageModifier"], function (require, exports, EventBus_1, Container_1, ImageLoader_1, ImageModifier_1) {
     'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
     var container = new Container_1.Container();
     container.registerObject('bus', new EventBus_1.EventBus());
-    container.register('ImageLoader', ImageLoader_1.ImageLoader);
+    container.register('ImageModifier', ImageModifier_1.ImageModifier, ['bus']);
+    container.register('ImageLoader', ImageLoader_1.ImageLoader, ['bus', 'ImageModifier']);
     try {
         var bus = container.get('bus');
         bus.on('error', function (msg) {

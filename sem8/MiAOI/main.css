@@ -22,7 +22,8 @@ main {
     margin: 0 auto;
     display: flex;
     flex-flow: row wrap;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 15px;
     align-content: space-between;
 }
 
@@ -36,17 +37,27 @@ main {
 
 .bt {
     box-shadow: gray 1px 1px 3px;
+    display: block;
     padding: 5px;
     text-align: center;
     margin: auto;
     cursor: pointer;
 }
 
+.bt._disabled {
+    cursor: not-allowed;
+    color: gray;
+}
+
 .bt:hover {
     box-shadow: gray 2px 2px 3px;
 }
 
-#load_form #image_file {
+.bt._disabled:hover {
+    box-shadow: gray 1px 1px 3px;
+}
+
+#x_image_file {
     visibility: hidden;
     display: none;
 }
@@ -55,7 +66,6 @@ main {
     display: block;
     overflow: scroll;
     background: #e4e4e4;
-    margin: 20px 0;
     height: 400px;
     box-shadow: gray -2px -2px 1px;
 }

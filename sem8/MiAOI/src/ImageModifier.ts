@@ -6,17 +6,15 @@ export class ImageModifier {
     protected _dependedButtons: HTMLElement[] = []
 
     constructor(protected _bus: EventBus) {
-        const xResetBt: HTMLElement = document.querySelector('#x_reset')!
-        xResetBt.addEventListener('click', this._xReset.bind(this))
-        this._dependedButtons.push(xResetBt)
-
-        const xInvertBt: HTMLElement = document.querySelector('#x_invert')!
-        xInvertBt.addEventListener('click', this._xInvert.bind(this))
-        this._dependedButtons.push(xInvertBt)
-
-        const xGrayScaleBt: HTMLElement = document.querySelector('#x_grayscale')!
-        xGrayScaleBt.addEventListener('click', this._xGrayScale.bind(this))
-        this._dependedButtons.push(xGrayScaleBt)
+        Object.entries({
+            '#x_reset': this._xReset,
+            '#x_invert': this._xInvert,
+            '#x_grayscale': this._xGrayScale,
+        }).forEach(([selector, cb]) => {
+            const bt: HTMLElement = document.querySelector(selector)!
+            bt.addEventListener('click', cb.bind(this))
+            this._dependedButtons.push(bt)
+        })
     }
 
     public initWith(ctx: CanvasRenderingContext2D): ImageModifier {

@@ -1,197 +1,174 @@
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 define("Container", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Container = void 0;
-    var Container = (function () {
-        function Container() {
+    class Container {
+        constructor() {
             this.store = {};
         }
-        Container.prototype.register = function (name, resolver, deps) {
-            if (deps === void 0) { deps = []; }
+        register(name, resolver, deps = []) {
             this.store[name] = {
-                resolver: resolver,
-                deps: deps
+                resolver, deps
             };
-        };
-        Container.prototype.registerObject = function (name, reference) {
+        }
+        registerObject(name, reference) {
             this.store[name] = reference;
-        };
-        Container.prototype.get = function (name) {
-            var _a;
-            var _this = this;
-            var _b, _c, _d, _e, _f, _g;
-            if ('function' === typeof ((_b = this.store[name]) === null || _b === void 0 ? void 0 : _b.resolver)
-                && ((_e = (_d = (_c = this.store[name]) === null || _c === void 0 ? void 0 : _c.resolver) === null || _d === void 0 ? void 0 : _d.prototype) === null || _e === void 0 ? void 0 : _e.constructor)) {
-                var deps = (((_f = this.store[name]) === null || _f === void 0 ? void 0 : _f.deps) || []).map(function (depName) { return _this.get(depName); });
-                return new ((_a = ((_g = this.store[name]) === null || _g === void 0 ? void 0 : _g.resolver)).bind.apply(_a, __spreadArray([void 0], deps, false)))();
+        }
+        get(name) {
+            var _a, _b, _c, _d, _e, _f;
+            if ('function' === typeof ((_a = this.store[name]) === null || _a === void 0 ? void 0 : _a.resolver)
+                && ((_d = (_c = (_b = this.store[name]) === null || _b === void 0 ? void 0 : _b.resolver) === null || _c === void 0 ? void 0 : _c.prototype) === null || _d === void 0 ? void 0 : _d.constructor)) {
+                const deps = (((_e = this.store[name]) === null || _e === void 0 ? void 0 : _e.deps) || []).map((depName) => this.get(depName));
+                return new ((_f = this.store[name]) === null || _f === void 0 ? void 0 : _f.resolver)(...deps);
             }
             return this.store[name];
-        };
-        return Container;
-    }());
+        }
+    }
     exports.Container = Container;
 });
 define("EventBus", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.EventBus = void 0;
-    var EventBus = (function () {
-        function EventBus() {
+    class EventBus {
+        constructor() {
             this.store = {};
         }
-        EventBus.prototype.on = function (name, cb) {
+        on(name, cb) {
             if (!Array.isArray(this.store[name])) {
                 this.store[name] = [];
             }
             this.store[name].push(cb);
-        };
-        EventBus.prototype.emit = function (name) {
-            var _this = this;
-            var args = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                args[_i - 1] = arguments[_i];
-            }
+        }
+        emit(name, ...args) {
             ;
             (this.store[name] || [])
-                .forEach(function (cb) { return Promise.resolve(cb.apply(void 0, args))
-                .catch(function (e) { return _this.emit('error', "Event listener for " + name + " failed!"); }); });
-        };
-        return EventBus;
-    }());
+                .forEach((cb) => Promise.resolve(cb(...args))
+                .catch(e => this.emit('error', `Event listener for ${name} failed!`)));
+        }
+    }
     exports.EventBus = EventBus;
 });
 define("ImageModifier", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ImageModifier = void 0;
-    var ImageModifier = (function () {
-        function ImageModifier(_bus) {
+    class ImageModifier {
+        constructor(_bus) {
             this._bus = _bus;
             this._dependedButtons = [];
-            var xResetBt = document.querySelector('#x_reset');
-            xResetBt.addEventListener('click', this._xReset.bind(this));
-            this._dependedButtons.push(xResetBt);
-            var xInvertBt = document.querySelector('#x_invert');
-            xInvertBt.addEventListener('click', this._xInvert.bind(this));
-            this._dependedButtons.push(xInvertBt);
-            var xGrayScaleBt = document.querySelector('#x_grayscale');
-            xGrayScaleBt.addEventListener('click', this._xGrayScale.bind(this));
-            this._dependedButtons.push(xGrayScaleBt);
+            Object.entries({
+                '#x_reset': this._xReset,
+                '#x_invert': this._xInvert,
+                '#x_grayscale': this._xGrayScale,
+            }).forEach(([selector, cb]) => {
+                const bt = document.querySelector(selector);
+                bt.addEventListener('click', cb.bind(this));
+                this._dependedButtons.push(bt);
+            });
         }
-        ImageModifier.prototype.initWith = function (ctx) {
+        initWith(ctx) {
             this._ctx = ctx;
             this._originImageData = ctx
                 .getImageData(0, 0, this._ctx.canvas.width, this._ctx.canvas.height);
-            this._dependedButtons.forEach(function (bt) {
+            this._dependedButtons.forEach((bt) => {
                 bt.classList.remove('_disabled');
             });
             return this;
-        };
-        ImageModifier.prototype._xReset = function () {
+        }
+        _xReset() {
             if (!this._ctx || !this._originImageData) {
                 return;
             }
             this._ctx.putImageData(this._originImageData, 0, 0);
-        };
-        ImageModifier.prototype._xInvert = function () {
+        }
+        _xInvert() {
             if (!this._ctx) {
                 return;
             }
-            var canvas = this._ctx.canvas;
-            var imageData = this._ctx.getImageData(0, 0, canvas.width, canvas.height);
-            var data = imageData.data;
-            for (var i = 0; i < data.length; i += 4) {
+            const canvas = this._ctx.canvas;
+            const imageData = this._ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
                 data[i] = 255 - data[i];
                 data[i + 1] = 255 - data[i + 1];
                 data[i + 2] = 255 - data[i + 2];
             }
             this._ctx.putImageData(imageData, 0, 0);
-        };
-        ImageModifier.prototype._xGrayScale = function () {
+        }
+        _xGrayScale() {
             if (!this._ctx) {
                 return;
             }
-            var canvas = this._ctx.canvas;
-            var imageData = this._ctx.getImageData(0, 0, canvas.width, canvas.height);
-            var data = imageData.data;
-            for (var i = 0; i < data.length; i += 4) {
-                var avg = Math.floor((data[i] + data[i + 1] + data[i + 2]) / 3);
+            const canvas = this._ctx.canvas;
+            const imageData = this._ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const avg = Math.floor((data[i] + data[i + 1] + data[i + 2]) / 3);
                 data[i] = avg;
                 data[i + 1] = avg;
                 data[i + 2] = avg;
             }
             this._ctx.putImageData(imageData, 0, 0);
-        };
-        ImageModifier.prototype._mustBeInitialized = function () {
+        }
+        _mustBeInitialized() {
             if (!this._ctx) {
-                throw new Error("Image modifier is not initialized yet!");
+                throw new Error(`Image modifier is not initialized yet!`);
             }
-        };
-        return ImageModifier;
-    }());
+        }
+    }
     exports.ImageModifier = ImageModifier;
 });
 define("ImageLoader", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ImageLoader = void 0;
-    var ImageLoader = (function () {
-        function ImageLoader(_bus, _imageModifier) {
+    class ImageLoader {
+        constructor(_bus, _imageModifier) {
             this._bus = _bus;
             this._imageModifier = _imageModifier;
             this._loadBt = document.querySelector('#x_image_file');
             this._loadBt.addEventListener('change', this._loadImage.bind(this));
         }
-        ImageLoader.prototype._loadImage = function () {
-            var _this = this;
+        _loadImage() {
             var _a, _b, _c;
             try {
                 if (!((_b = (_a = this._loadBt) === null || _a === void 0 ? void 0 : _a.files) === null || _b === void 0 ? void 0 : _b.length)) {
                     throw new Error('Cannot load file!');
                 }
-                var file = (_c = this._loadBt) === null || _c === void 0 ? void 0 : _c.files[0];
-                var fr_1 = new FileReader();
-                fr_1.onload = function () {
-                    if (null === fr_1.result) {
-                        _this._bus.emit('error', 'Cannot read image content!');
+                const file = (_c = this._loadBt) === null || _c === void 0 ? void 0 : _c.files[0];
+                const fr = new FileReader();
+                fr.onload = () => {
+                    if (null === fr.result) {
+                        this._bus.emit('error', 'Cannot read image content!');
                         return;
                     }
-                    _this._createImage(fr_1.result);
+                    this._createImage(fr.result);
                 };
-                fr_1.readAsDataURL(file);
+                fr.readAsDataURL(file);
             }
             catch (e) {
                 this._bus.emit('error', e.message);
             }
-        };
-        ImageLoader.prototype._createImage = function (imageResult) {
-            var _this = this;
+        }
+        _createImage(imageResult) {
             try {
-                var img_1 = new Image();
-                img_1.onload = function () {
-                    _this._imageLoaded(img_1);
+                const img = new Image();
+                img.onload = () => {
+                    this._imageLoaded(img);
                 };
-                img_1.src = imageResult;
+                img.src = imageResult;
             }
             catch (e) {
                 this._bus.emit('error', e.message);
             }
-        };
-        ImageLoader.prototype._imageLoaded = function (img) {
+        }
+        _imageLoaded(img) {
             try {
-                var canvas = document.querySelector('#canvas2d');
+                const canvas = document.querySelector('#canvas2d');
                 canvas.width = img.width;
                 canvas.height = img.height;
-                var ctx = canvas.getContext("2d");
+                const ctx = canvas.getContext("2d");
                 ctx.drawImage(img, 0, 0);
                 this._imageModifier.initWith(ctx);
                 this._loadBt.value = null;
@@ -199,21 +176,20 @@ define("ImageLoader", ["require", "exports"], function (require, exports) {
             catch (e) {
                 this._bus.emit('error', e.message);
             }
-        };
-        return ImageLoader;
-    }());
+        }
+    }
     exports.ImageLoader = ImageLoader;
 });
 define("main", ["require", "exports", "EventBus", "Container", "ImageLoader", "ImageModifier"], function (require, exports, EventBus_1, Container_1, ImageLoader_1, ImageModifier_1) {
     'use strict';
     Object.defineProperty(exports, "__esModule", { value: true });
-    var container = new Container_1.Container();
+    const container = new Container_1.Container();
     container.registerObject('bus', new EventBus_1.EventBus());
     container.register('ImageModifier', ImageModifier_1.ImageModifier, ['bus']);
     container.register('ImageLoader', ImageLoader_1.ImageLoader, ['bus', 'ImageModifier']);
     try {
-        var bus = container.get('bus');
-        bus.on('error', function (msg) {
+        const bus = container.get('bus');
+        bus.on('error', (msg) => {
             alert(msg);
         });
         container.get('ImageLoader');

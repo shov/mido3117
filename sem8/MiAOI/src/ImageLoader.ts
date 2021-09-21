@@ -1,6 +1,7 @@
 // Image loader
 import {EventBus} from 'EventBus';
 import {ImageModifier} from './ImageModifier'
+import {BrightChartControl} from './BrightChartControl'
 
 export class ImageLoader {
     protected _loadBt: HTMLInputElement = document.querySelector('#x_image_file')!
@@ -8,6 +9,7 @@ export class ImageLoader {
     constructor(
         protected _bus: EventBus,
         protected _imageModifier: ImageModifier,
+        protected _brightChartControl: BrightChartControl,
     ) {
         this._loadBt.addEventListener('change', this._loadImage.bind(this))
     }

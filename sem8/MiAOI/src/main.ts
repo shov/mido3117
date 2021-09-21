@@ -4,12 +4,16 @@ import {EventBus} from 'EventBus'
 import {Container} from 'Container'
 import {ImageLoader} from 'ImageLoader'
 import {ImageModifier} from './ImageModifier'
+import {colourUtils} from './ColourUtils'
+import {BrightChartControl} from './BrightChartControl'
 
 // DI container
 const container = new Container()
 container.registerObject('bus', new EventBus())
-container.register('ImageModifier', ImageModifier, ['bus'])
-container.register('ImageLoader', ImageLoader, ['bus', 'ImageModifier'])
+container.registerObject('colourUtils', colourUtils)
+container.register('BrightChartControl', BrightChartControl, ['colourUtils',])
+container.register('ImageModifier', ImageModifier, ['bus', 'colourUtils', 'BrightChartControl'])
+container.register('ImageLoader', ImageLoader, ['bus', 'ImageModifier',])
 
 // Start
 try {

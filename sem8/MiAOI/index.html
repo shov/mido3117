@@ -7,6 +7,8 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>MiAOI</title>
     <link rel="stylesheet" href="main.css">
+    <script src="chart.min.js"></script>
+    <script src="chartjs-plugin-dragdata.min.js"></script>
     <script src="require.js"></script>
 </head>
 <body>
@@ -26,10 +28,18 @@
             <div class="item">
                 <div class="bt _disabled" id="x_grayscale">Grayscale</div>
             </div>
+            <div class="item">
+                <div class="bt _disabled" id="x_make_brighter">Br+</div>
+            </div>
         </div>
         <div class="item">
             <div class="over_box">
                 <canvas id="canvas2d"></canvas>
+            </div>
+        </div>
+        <div class="row container">
+            <div class="item">
+                <canvas id="x_br_chart"></canvas>
             </div>
         </div>
     </div>

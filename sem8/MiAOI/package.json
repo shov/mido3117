@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "npx tsc",
+    "start": "npx live-server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

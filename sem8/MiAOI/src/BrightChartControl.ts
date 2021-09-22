@@ -1,73 +1,188 @@
 import {IColourUtils} from './ColourUtils'
-declare type Chart = any;
+
+declare type T_BrControlCouple = {
+    bt: HTMLElement,
+    sliderList: (({ valueMapping: string[] } & HTMLInputElement) | null)[],
+    valueList: (HTMLElement | null)[],
+    handler: (couple: T_BrControlCouple, ...args: any[]) => void,
+}
+
+declare type T_YMap = { [y: string]: Set<number> }
 
 export class BrightChartControl {
-    protected _chartCanvas: HTMLCanvasElement = document.querySelector('#x_br_chart')!
+    protected _brcContainer: HTMLElement = document.querySelector('#brc_container')!
     protected _ctx?: CanvasRenderingContext2D
-    protected _chart?: Chart
+    protected _originYMap: T_YMap = {}
+    protected _controls: { [selector: string]: T_BrControlCouple } = {}
+
 
     constructor(protected _utils: IColourUtils) {
+        Object.entries({
+            '#x_brc_threshold': this._xBrThreshold,
+            '#x_brc_pshape': this._xBrPShape,
+            '#x_brc_hillup': this._xBrHillUp,
+            '#x_brc_hilldown': this._xBrHillDown,
+        })
+            .forEach(([selector, handler]) => {
+                this._controls[selector] = {
+                    bt: document.querySelector(selector)!,
+                    sliderList: ['0', '1',].map(i => document.querySelector(selector + '_slider' + i)),
+                    valueList: ['0', '1',].map(i => document.querySelector(selector + '_value' + i)),
+                    handler: handler.bind(this),
+                }
+                this._controls[selector].bt.addEventListener('click', (...args) => {
+                    this._controls[selector].handler(this._controls[selector], ...args)
+                })
+                this._controls[selector].sliderList.forEach((slider, i) => {
+                    if (!slider) {
+                        return
+                    }
+
+                    slider.addEventListener('input', () => {
+                        const value: HTMLElement | null = this._controls[selector].valueList[i]
+                        if (null === value) {
+                            throw Error()
+                        }
+                        value.innerHTML = slider.valueMapping[parseInt(slider.value)]
+                    })
+                })
+            })
     }
 
-    public insertChart(ctx: CanvasRenderingContext2D) {
+    public resetBrightCharts(ctx: CanvasRenderingContext2D) {
         this._ctx = ctx
-        if(this._chart) {
-            this._chart.destroy()
-        }
+        this._brcContainer.classList.remove('_hidden')
 
-        // Analyze matrix
-        // Quantize brightness by 10 groups
-        // Set each group value to a middle / like 50%
-        // Map all indexes to their groups
-        // On drag a group, make all pixels of this group brighter of less brighter
-        const options = {
-            type: 'line',
-            data: {
-                labels: ['a','b','c','d'],
-                datasets: [{
-                    label: 'brightness',
-                    data: [0,1,2,3,4,5,6,7,8,9,10],
-                    borderWidth: 1,
-                    pointHitRadius: 25
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        max: 100,
-                        min: 0
-                    }
-                },
-                responsive: false,
-                onHover: function(e: any) {
-                    const point = e.chart.getElementsAtEventForMode(e, 'nearest', {
-                        intersect: true
-                    }, false)
-                    if (point.length) e.native.target.style.cursor = 'grab'
-                    else e.native.target.style.cursor = 'default'
-                },
-                plugins: {
-                    dragData: {
-                        round: 1,
-                        showTooltip: true,
-                        onDragStart: function(e: any) {
-                            // console.log(e)
-                        },
-                        onDrag: function(e: any, datasetIndex: any, index: any, value: any) {
-                            e.target.style.cursor = 'grabbing'
-                            //console.log(datasetIndex, index, value)
-                        },
-                        onDragEnd: function(e: any, datasetIndex: any, index: any, value: any) {
-                            e.target.style.cursor = 'default'
-                            // console.log(datasetIndex, index, value)
-                        },
-                    }
-                }
+        //get all y values, bind them to pixel offsets
+        const imageData: ImageData = this._ctx.getImageData(0, 0, this._ctx.canvas.width, this._ctx.canvas.height)
+        const yuvMatrix = this._utils.matrix.RBGToYUV(imageData.data)
+
+        // reset
+        this._originYMap = {}
+        for (let i = 0; i < yuvMatrix.length; i += 4) {
+            const y = String(yuvMatrix[i])
+            const offset = i
+
+            if (!this._originYMap[y]) {
+                this._originYMap[y] = new Set()
             }
+
+            this._originYMap[y].add(offset)
         }
 
-        let chartCtx: CanvasRenderingContext2D = this._chartCanvas.getContext('2d')!;
-        // @ts-ignore
-        this._chart = new Chart(chartCtx, options);
+
+        // set/re-set controls
+        Object.entries(this._controls)
+            .forEach(([selector, couple]) => {
+                const {sliderList, valueList} = couple
+                ;[0, 1].forEach((i: number) => {
+                    const slider: ({ valueMapping: string[] } & HTMLInputElement) | null = sliderList[i]
+                    const value: HTMLElement | null = valueList[i]
+                    if (null === value || null === slider) {
+                        return
+                    }
+
+                    slider.setAttribute('min', '0')
+                    slider.setAttribute('max', String(Object.keys(this._originYMap).length - 1))
+                    slider.valueMapping = Object.keys(this._originYMap).sort((a, b) => parseInt(a) - parseInt(b))
+
+                    const mid = Math.floor(slider.valueMapping.length / 2)
+                    slider.setAttribute('value', String(mid))
+                    value.innerHTML = String(slider.valueMapping[mid])
+                })
+            })
+    }
+
+    protected _xBrThreshold(couple: T_BrControlCouple, ...args: any[]): void {
+        const MAX_Y = 255
+        const MIN_Y = 0
+
+        const thresholdY = parseInt(couple.valueList[0]!.innerHTML)
+
+        this._manipulateOnYUVAndUpdate((yuvMatrix, yMap, yKey) => {
+            const y: number = parseInt(yKey)
+            ;[...yMap[yKey]].forEach(offset => {
+                yuvMatrix[offset] = y >= thresholdY ? MAX_Y : MIN_Y
+            })
+        })
+    }
+
+    protected _xBrPShape(couple: T_BrControlCouple, ...args: any[]): void {
+        const MAX_Y = 255
+        const MIN_Y = 0
+
+        const a = parseInt(couple.valueList[0]!.innerHTML)
+        const b = parseInt(couple.valueList[1]!.innerHTML)
+
+        const aY = a <= b ? a : b
+        const bY = a <= b ? b : a
+
+        this._manipulateOnYUVAndUpdate((yuvMatrix, yMap, yKey) => {
+            const y: number = parseInt(yKey)
+            ;[...yMap[yKey]].forEach(offset => {
+                yuvMatrix[offset] = (y >= aY && y <= bY) ? MAX_Y : MIN_Y
+            })
+        })
+    }
+
+    protected _xBrHillUp(couple: T_BrControlCouple, ...args: any[]): void {
+        const MAX_Y = 255
+        const MIN_Y = 0
+
+        const a = parseInt(couple.valueList[0]!.innerHTML)
+        const b = parseInt(couple.valueList[1]!.innerHTML)
+
+        const aY = a <= b ? a : b
+        const bY = a <= b ? b : a
+
+        this._manipulateOnYUVAndUpdate((yuvMatrix, yMap, yKey) => {
+            const y: number = parseInt(yKey)
+            ;[...yMap[yKey]].forEach(offset => {
+                yuvMatrix[offset] = y < aY ? MIN_Y : (y > bY ? MAX_Y : y)
+            })
+        })
+    }
+
+    protected _xBrHillDown(couple: T_BrControlCouple, ...args: any[]): void {
+        const MAX_Y = 255
+        const MIN_Y = 0
+
+        const a = parseInt(couple.valueList[0]!.innerHTML)
+        const b = parseInt(couple.valueList[1]!.innerHTML)
+
+        const aY = a <= b ? a : b
+        const bY = a <= b ? b : a
+
+        this._manipulateOnYUVAndUpdate((yuvMatrix, yMap, yKey) => {
+            const y: number = parseInt(yKey)
+            ;[...yMap[yKey]].forEach(offset => {
+                yuvMatrix[offset] = y < aY ? MAX_Y : (y > bY ? MIN_Y : y)
+            })
+        })
+    }
+
+    protected _manipulateOnYUVAndUpdate(cb: (yuvMatrix: number[], yMap: T_YMap, yKey: string) => void): void {
+        if (!this._ctx) {
+            throw new Error('No context set!')
+        }
+
+        const yMap = this._originYMap
+        const utils = this._utils
+        const ctx: CanvasRenderingContext2D = this._ctx
+
+        const imageData: ImageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height)
+        const yuvMatrix = utils.matrix.RBGToYUV(imageData.data)
+
+        Object.keys(yMap).forEach((yKey: string) => {
+            cb(yuvMatrix, yMap, yKey)
+        })
+
+        const rgbMatrix = utils.matrix.YUVtoRGB(yuvMatrix)
+        for (let i = 0; i < rgbMatrix.length; i++) {
+            imageData.data[i] = rgbMatrix[i]
+        }
+        ctx.putImageData(imageData, 0, 0)
+
+        this.resetBrightCharts(this._ctx)
     }
 }

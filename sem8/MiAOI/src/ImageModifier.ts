@@ -34,7 +34,7 @@ export class ImageModifier {
             bt.classList.remove('_disabled')
         })
 
-        this._bcControl.insertChart(this._ctx)
+        this._bcControl.resetBrightCharts(this._ctx)
         return this
     }
 
@@ -44,7 +44,7 @@ export class ImageModifier {
         }
 
         this._ctx.putImageData(this._originImageData, 0, 0)
-        this._bcControl.insertChart(this._ctx)
+        this._bcControl.resetBrightCharts(this._ctx)
     }
 
     protected _xInvert() {
@@ -63,6 +63,7 @@ export class ImageModifier {
         }
 
         this._ctx.putImageData(imageData, 0, 0)
+        this._bcControl.resetBrightCharts(this._ctx)
     }
 
     protected _xGrayScale() {
@@ -82,6 +83,7 @@ export class ImageModifier {
         }
 
         this._ctx.putImageData(imageData, 0, 0)
+        this._bcControl.resetBrightCharts(this._ctx)
     }
 
     protected _xMakeBrighter() {
@@ -93,21 +95,18 @@ export class ImageModifier {
         const imageData: ImageData = this._ctx.getImageData(0, 0, canvas.width, canvas.height)
         const data: Uint8ClampedArray = imageData.data
 
-        const hsvMatrix = this._utils.matrix.RBGToHSV(data)
-        for (let i = 0; i < hsvMatrix.length; i += 4) {
-            const s = i + 1
-            const v = i + 2
-
-            hsvMatrix[s] = hsvMatrix[s] - 10 < 0 ? 0 : hsvMatrix[s] - 10
-            hsvMatrix[v] = hsvMatrix[v] + 10 > 100 ? 100 : hsvMatrix[v] + 10
+        const yuvMatrix = this._utils.matrix.RBGToYUV(data)
+        for (let i = 0; i < yuvMatrix.length; i += 4) {
+            yuvMatrix[i] = (yuvMatrix[i] + 10) > 255 ? 255 : yuvMatrix[i] + 10
         }
 
-        const rgbMatrix = this._utils.matrix.HSVToRGB(hsvMatrix)
+        const rgbMatrix = this._utils.matrix.YUVtoRGB(yuvMatrix)
         for (let i = 0; i < rgbMatrix.length; i++) {
             data[i] = rgbMatrix[i]
         }
 
         this._ctx.putImageData(imageData, 0, 0)
+        this._bcControl.resetBrightCharts(this._ctx)
     }
 
     protected _mustBeInitialized() {

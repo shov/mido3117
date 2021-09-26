@@ -32,10 +32,6 @@ describe(`Welcome HTTP`, () => {
     const res = await request.get('/api/v1/welcome')
 
     expect(res.status).toBe(200)
-    expect(res.body).toStrictEqual({
-      message: `Toweran is on!`
-    })
-
     done()
   })
 })

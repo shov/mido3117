@@ -67,14 +67,14 @@ describe('TokenServiceTest', () => {
 
     // Mock TokenDAO
     container.instanceForce('app.domain.Auth.repositories.TokenDAO', new ImportedTokenDAOMock({
-        find: async (tokenContent) => {
+        find: async ({tokenContent}) => {
           must.be.notEmptyString(tokenContent)
           findMethodCalled = true
           return tokenDTO.clone({
             id: fakeTokenDTOId, userId: initUserId, createdAt: new Date(+nowDate - expTerm - 1), content: tokenContent
           })
         },
-        delete: async (tokenDTO) => {
+        delete: async ({tokenDTO}) => {
           expect(tokenDTO.id).toBe(fakeTokenDTOId)
           deleteMethodCalled = true
         }
@@ -111,14 +111,14 @@ describe('TokenServiceTest', () => {
 
     // Mock TokenDAO
     container.instanceForce('app.domain.Auth.repositories.TokenDAO', new ImportedTokenDAOMock({
-        find: async (tokenContent) => {
+        find: async ({tokenContent}) => {
           must.be.notEmptyString(tokenContent)
           findMethodCalled = true
           return tokenDTO.clone({
             id: fakeTokenDTOId, userId: initUserId, createdAt: new Date(nowDate), content: tokenContent
           })
         },
-        delete: async (tokenDTO) => {
+        delete: async ({tokenDTO}) => {
           expect(tokenDTO.id).toBe(fakeTokenDTOId)
           deleteMethodCalled = true
         }
@@ -158,14 +158,14 @@ describe('TokenServiceTest', () => {
 
     // Mock TokenDAO
     container.instanceForce('app.domain.Auth.repositories.TokenDAO', new ImportedTokenDAOMock({
-        find: async (tokenContent) => {
+        find: async ({tokenContent}) => {
           must.be.notEmptyString(tokenContent)
           findMethodCalled = true
           return tokenDTO.clone({
             id: fakeTokenDTOId, userId: dbUserId, createdAt: new Date(nowDate), content: tokenContent
           })
         },
-        delete: async (tokenDTO) => {
+        delete: async ({tokenDTO}) => {
           expect(tokenDTO.id).toBe(fakeTokenDTOId)
           deleteMethodCalled = true
         }
@@ -200,10 +200,10 @@ describe('TokenServiceTest', () => {
 
     // Mock TokenDAO
     container.instanceForce('app.domain.Auth.repositories.TokenDAO', new ImportedTokenDAOMock({
-        find: async (tokenContent) => {
+        find: async ({tokenContent}) => {
           findMethodCalled = true
         },
-        delete: async (tokenDTO) => {
+        delete: async ({tokenDTO}) => {
           deleteMethodCalled = true
         }
       }, tokenDTO

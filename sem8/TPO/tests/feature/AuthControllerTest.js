@@ -183,7 +183,7 @@ describe(`Auth Controller Test`, () => {
     expect(userDTO).toBe(null)
 
     userDTO = await userService.verify(res.body.token)
-    expect(userDTO. ? login).toBe(data.login)
+    expect(userDTO?.login).toBe(data.login)
   })
 
   it(`Update positive`, async () => {

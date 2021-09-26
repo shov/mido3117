@@ -14,6 +14,14 @@ class UserDAO extends ImportedBasicDAO {
   constructor(dbConnection, userDTO) {
     super(dbConnection, 'tokens', userDTO)
   }
+
+  /**
+   * @param {string} login
+   * @returns {Promise<UserDTO|null>}
+   */
+  async findByLogin(login) {
+
+  }
 }
 
 module.exports = UserDAO

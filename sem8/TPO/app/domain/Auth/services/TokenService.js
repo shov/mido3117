@@ -69,7 +69,7 @@ class TokenService {
     }
 
     if (this._isExpired(tokenDTO, payload)) {
-      await this._tokenDAO.delete(tokenDTO)
+      await this.delete(tokenDTO)
       return null
     }
 
@@ -81,7 +81,8 @@ class TokenService {
    * @returns {Promise<void>}
    */
   async delete(tokenDTO) {
-
+    must.be.number(tokenDTO.id)
+    await this._tokenDAO.delete(tokenDTO)
   }
 
 
@@ -90,7 +91,8 @@ class TokenService {
    * @returns {Promise<void>}
    */
   async deleteAllForUser(tokenDTO) {
-
+    must.be.number(tokenDTO.userId)
+    await this._tokenDAO.deleteAllByUserId(tokenDTO.userId)
   }
 
   /**

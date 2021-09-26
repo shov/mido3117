@@ -65,7 +65,7 @@ class DataBaseServiceProvider extends BasicServiceProvider {
       })
 
     container
-      .register('migrationsManager', require(APP_PATH + '/app/lib/MigrationManager'))
+      .register('migrationManager', require(APP_PATH + '/app/lib/MigrationManager'))
       .dependencies('logger', 'config', 'dbConnectionProvider');
 
   }

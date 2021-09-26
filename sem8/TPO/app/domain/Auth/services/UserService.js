@@ -21,35 +21,72 @@ class UserService {
     this._tokenService = tokenService
   }
 
-  async register() {
+  /**
+   * @param {string} login
+   * @param {string} password
+   * @param {*} userData
+   * @returns {Promise<{tokenDTO: TokenDTO, userDTO: UserDTO}>}
+   */
+  async register({login, password, userData}) {
 
   }
 
-  async login() {
+  /**
+   * @param {string} login
+   * @param {string} password
+   * @returns {Promise<TokenDTO>}
+   */
+  async login({login, password}) {
 
   }
 
-  async logout() {
+  /**
+   * @param {string} tokenContent
+   * @returns {Promise<void>}
+   */
+  async logout({tokenContent}) {
 
   }
 
-  async verify() {
+  /**
+   * @param {string} tokenContent
+   * @returns {Promise<UserDTO>}
+   */
+  async verify({tokenContent}) {
 
   }
 
-  async refresh() {
+  /**
+   * @param {string}  tokenContent
+   * @returns {Promise<TokenDTO>}
+   */
+  async refresh({tokenContent}) {
 
   }
 
-  async updatePassword() {
+  /**
+   * @param {UserDTO} userDTO
+   * @param {string} password
+   * @returns {Promise<void>}
+   */
+  async updatePassword({userDTO, password}) {
 
   }
 
-  async updateData() {
+  /**
+   * @param {UserDTO} userDTO
+   * @param {string} userData
+   * @returns {Promise<void>}
+   */
+  async updateData({userDTO, userData}) {
 
   }
 
-  async delete() {
+  /**
+   * @param {UserDTO} userDTO
+   * @returns {Promise<void>}
+   */
+  async delete({userDTO}) {
 
   }
 }

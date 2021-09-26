@@ -5,6 +5,6 @@ app
     threadName: process.env.THREAD_NAME || null
   })
   .boot()
-const migrationsManager = app.get('migrationsManager')
-const knexConfig = migrationsManager.getMigrationConfig()
+const migrationManager = app.get('migrationManager')
+const knexConfig = migrationManager.getMigrationConfig()
 module.exports = knexConfig

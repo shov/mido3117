@@ -3,7 +3,7 @@ const {
   APP_PATH
 } = toweran
 
-class MigrationsManager {
+class MigrationManager {
   constructor(logger, config, dbConnectionProvider) {
     this._logger = logger
     const creds = dbConnectionProvider.getConnectionConfig()
@@ -38,7 +38,7 @@ class MigrationsManager {
 
   async refresh() {
     if (process.env.NODE_ENV !== 'testing') {
-      throw new Error('Refreshing is for testing now!')
+      throw new Error('Refreshing for testing only!')
     }
 
     await this._dbConnection.migrate.rollback(null, true)
@@ -46,4 +46,4 @@ class MigrationsManager {
   }
 }
 
-module.exports = MigrationsManager
+module.exports = MigrationManager

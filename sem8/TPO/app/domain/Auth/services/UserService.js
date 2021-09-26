@@ -1,6 +1,5 @@
-const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
-const {must, BadRequestException} = toweran
+const {must, BadRequestException, UnauthorizedException} = toweran
 
 class UserService {
   /**
@@ -72,7 +71,17 @@ class UserService {
    * @returns {Promise<UserDTO>}
    */
   async verify({tokenContent}) {
+    const tokenDTO = await this._tokenService.verify(tokenContent)
+    if(!tokenDTO) {
+      throw new UnauthorizedException('Invalid token!')
+    }
 
+    const userDTO = await this._userDAO.find({id: tokenDTO.userId})
+    if(!userDTO) {
+      throw new UnauthorizedException('Invalid token!')
+    }
+
+    return userDTO
   }
 
   /**

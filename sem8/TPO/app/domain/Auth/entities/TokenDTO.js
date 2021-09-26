@@ -14,7 +14,7 @@ class TokenDTO extends ImportedBasicDTO {
   }
 
   get userId() {
-    return this._userId
+    return this._userId ? Number(this._userId) : this._userId
   }
 
   set userId(value) {

@@ -1,5 +1,6 @@
 const {APP_PATH} = toweran
 const ImportedBasicDAO = require(APP_PATH + '/app/lib/BasicDAO')
+const {must} = toweran
 
 /**
  * @extends BasicDAO
@@ -8,11 +9,11 @@ class TokenDAO extends ImportedBasicDAO {
   /**
    * @DI dbConnection
    * @DI app.domain.Auth.entities.TokenDTO
-   * @param {QueryBuilder} dbConnection
+   * @param {{function(): QueryBuilder}} dbConnection
    * @param {TokenDTO} tokenDTO
    */
   constructor(dbConnection, tokenDTO) {
-    super(dbConnection, 'tokens', tokenDTO)
+    super(dbConnection(), 'tokens', tokenDTO)
   }
 
   /**
@@ -22,9 +23,12 @@ class TokenDAO extends ImportedBasicDAO {
    * @returns {Promise<TokenDTO>}
    */
   async create({userId, content, createdAt}) {
+    must.be.number(userId)
+    must.be.notEmptyString(content)
+    must.be.instance(createdAt, Date)
 
     const tokenDTO = this.makeDTO({
-     userId, content, createdAt
+      userId, content, createdAt
     })
 
     const query = this._connection(this._TABLE_NAME)
@@ -41,24 +45,54 @@ class TokenDAO extends ImportedBasicDAO {
    * @param {string} tokenContent
    * @returns {Promise<TokenDTO|null>}
    */
-  async find(tokenContent) {
+  async find({tokenContent}) {
+    must.be.notEmptyString(tokenContent)
 
+    const query = this._connection
+      .select('*')
+      .from(this._TABLE_NAME)
+      .where({content: tokenContent})
+      .orderBy('created_at', 'desc')
+      .first()
+
+    const result = await query
+    if (!result) {
+      return null
+    }
+
+    return this.makeDTO({...result})
   }
 
   /**
    * @param {TokenDTO} tokenDTO
    * @returns {Promise<void>}
    */
-  async delete(tokenDTO) {
+  async delete({tokenDTO}) {
+    must.be.instance(tokenDTO, this._dto.constructor)
 
+    const query = this._connection
+      .delete()
+      .from(this._TABLE_NAME)
+      //.where({id: tokenDTO.id})
+      // to make sure no dups left (dups are OK theoretically, but not after delete)
+      .where({content: tokenDTO.content})
+
+    await query
   }
 
   /**
    * @param {number} userId
    * @returns {Promise<void>}
    */
-  async deleteAllByUserId(userId) {
+  async deleteAllByUserId({userId}) {
+    must.be.number(userId)
 
+    const query = this._connection
+      .delete()
+      .from(this._TABLE_NAME)
+      .where({user_id: userId})
+
+    await query
   }
 }
 

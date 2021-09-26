@@ -53,7 +53,7 @@ describe(`Auth Controller Test`, () => {
     expect(typeof res?.body?.token).toBe('string')
     expect(typeof res?.body?.id).toBe('number')
 
-    const userDTO = await userService.verify(res.body.token)
+    const userDTO = await userService.verify({tokenContent: res.body.token})
     expect(userDTO?.login).toBe(data.login)
     expect(res?.body?.id).toBe(userDTO.id)
   })
@@ -72,7 +72,7 @@ describe(`Auth Controller Test`, () => {
       const res = await request.post('/api/v1/register')
         .send(data)
 
-      const userDTO = await userDAO.findByLogin(data.login)
+      const userDTO = await userDAO.findByLogin({login: data.login})
 
       expect(res.status).toBe(422)
       expect(userDTO).toBe(null)
@@ -102,7 +102,7 @@ describe(`Auth Controller Test`, () => {
     expect(res.status).toBe(200)
     expect(typeof res?.body?.token).toBe('string')
 
-    const userDTO = await userService.verify(res.body.token)
+    const userDTO = await userService.verify({tokenContent: res.body.token})
     expect(userDTO?.login).toBe(data.login)
   })
 
@@ -134,7 +134,7 @@ describe(`Auth Controller Test`, () => {
 
     expect(res.status).toBe(204)
 
-    const userDTO = await userService.verify(resReg.body.token)
+    const userDTO = await userService.verify({tokenContent: resReg.body.token})
     expect(userDTO).toBe(null)
   })
 
@@ -155,7 +155,7 @@ describe(`Auth Controller Test`, () => {
 
     expect(res.status).toBe(200)
 
-    const userDTO = await userService.verify(resReg.body.token)
+    const userDTO = await userService.verify({tokenContent: resReg.body.token})
     expect(typeof userDTO?.id).toBe('number')
     expect(res.body?.id).toBe(userDTO.id)
     expect(res.body?.login).toBe(userDTO.login)
@@ -181,10 +181,10 @@ describe(`Auth Controller Test`, () => {
     expect(typeof res.body?.token).toBe('string')
     expect(res.body.token === resReg.body.token).toBe(false)
 
-    let userDTO = await userService.verify(resReg.body.token)
+    let userDTO = await userService.verify({tokenContent: resReg.body.token})
     expect(userDTO).toBe(null)
 
-    userDTO = await userService.verify(res.body.token)
+    userDTO = await userService.verify({tokenContent: res.body.token})
     expect(userDTO?.login).toBe(data.login)
   })
 
@@ -206,7 +206,7 @@ describe(`Auth Controller Test`, () => {
     const resReg = await request.post('/api/v1/register')
       .send(data)
 
-    let userDTO = await userService.verify(resReg.body.token)
+    let userDTO = await userService.verify({tokenContent: resReg.body.token})
     expect(typeof userDTO?.hash).toBe('string')
     const oldHash = userDTO.hash
     expect(userDTO.details).toStrictEqual(data.user)
@@ -217,7 +217,7 @@ describe(`Auth Controller Test`, () => {
 
     expect(res.status).toBe(204)
 
-    userDTO = await userService.verify(resReg.body.token)
+    userDTO = await userService.verify({tokenContent: resReg.body.token})
     expect(typeof userDTO?.hash).toBe('string')
     expect(oldHash === userDTO.hash).toBe(false)
     expect(userDTO.details).toStrictEqual(updateData.user)
@@ -254,16 +254,16 @@ describe(`Auth Controller Test`, () => {
 
     expect(res.status).toBe(204)
 
-    let userDTO = await userService.verify(resReg.body.token)
+    let userDTO = await userService.verify({tokenContent: resReg.body.token})
     expect(userDTO).toBe(null)
 
-    userDTO = await userDAO.findByLogin(data.login)
+    userDTO = await userDAO.findByLogin({login: data.login})
     expect(userDTO).toBe(null)
 
-    let tokenDTO = await tokenDAO.find(resReg.body.token)
+    let tokenDTO = await tokenDAO.find({tokenContent: resReg.body.token})
     expect(tokenDTO).toBe(null)
 
-    tokenDTO = await tokenDAO.find(resLogin.body.token)
+    tokenDTO = await tokenDAO.find({tokenContent: resLogin.body.token})
     expect(tokenDTO).toBe(null)
   })
 })

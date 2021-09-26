@@ -58,7 +58,7 @@ class TokenService {
       return null
     }
 
-    const tokenDTO = await this._tokenDAO.find(tokenContent)
+    const tokenDTO = await this._tokenDAO.find({tokenContent})
 
     if (!tokenDTO) {
       return null
@@ -92,7 +92,7 @@ class TokenService {
    */
   async deleteAllForUser(tokenDTO) {
     must.be.number(tokenDTO.userId)
-    await this._tokenDAO.deleteAllByUserId(tokenDTO.userId)
+    await this._tokenDAO.deleteAllByUserId({userId: tokenDTO.userId})
   }
 
   /**

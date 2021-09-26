@@ -82,6 +82,36 @@ class UserDAO extends ImportedBasicDAO {
 
     return this.makeDTO({...result})
   }
+
+  /**
+   * @param {UserDTO} userDTO
+   * @returns {Promise<void>}
+   */
+  async update({userDTO}) {
+    const query = this._connection(this._TABLE_NAME)
+      .update(userDTO.dataDB())
+      .where({id: userDTO.id})
+
+    await query
+  }
+
+  /**
+   * @param {UserDTO} userDTO
+   * @param {?Transaction} transaction
+   * @returns {Promise<void>}
+   */
+  async delete({userDTO, transaction = null}) {
+    const query = this._connection
+      .delete()
+      .from(this._TABLE_NAME)
+      .where({id: userDTO.id})
+
+    if (transaction) {
+      query.transacting(transaction)
+    }
+
+    await query
+  }
 }
 
 module.exports = UserDAO

@@ -42,6 +42,13 @@ class BasicDAO {
 
     return this._dto.clone(data)
   }
+
+  /**
+   * @returns {{}|*|Knex.QueryInterface}
+   */
+  getConnection() {
+    return this._connection
+  }
 }
 
 module.exports = BasicDAO

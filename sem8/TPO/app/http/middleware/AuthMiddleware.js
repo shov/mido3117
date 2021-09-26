@@ -23,12 +23,12 @@ class AuthMiddleware extends ImportedBasicMiddleware {
   }
 
   async handle(req, res, next) {
-    const authHeader = res.headers['Authorization'] || null
+    const authHeader = req.headers['authorization'] || null
 
     if (!authHeader
       || !check.nonEmptyString(authHeader)
       || !/^Bearer\s[^\s]+$/.test(authHeader.trim())) {
-      throw new UnauthorizedException()
+      throw new UnauthorizedException('No token found')
     }
 
     const tokenContent = authHeader.trim().split(' ')[1]

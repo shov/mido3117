@@ -82,17 +82,18 @@ class TokenService {
    */
   async delete(tokenDTO) {
     must.be.number(tokenDTO.id)
-    await this._tokenDAO.delete(tokenDTO)
+    await this._tokenDAO.delete({tokenDTO})
   }
 
 
   /**
-   * @param {TokenDTO} tokenDTO
+   * @param {number} userId
+   * @param {?Transaction} transaction
    * @returns {Promise<void>}
    */
-  async deleteAllForUser(tokenDTO) {
-    must.be.number(tokenDTO.userId)
-    await this._tokenDAO.deleteAllByUserId({userId: tokenDTO.userId})
+  async deleteAllForUser({userId, transaction = null}) {
+    must.be.number(userId)
+    await this._tokenDAO.deleteAllByUserId({userId, transaction})
   }
 
   /**

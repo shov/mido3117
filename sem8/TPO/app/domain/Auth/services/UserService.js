@@ -55,7 +55,19 @@ class UserService {
    * @returns {Promise<TokenDTO>}
    */
   async login({login, password}) {
+    must.be.notEmptyString(login)
+    must.be.notEmptyString(password)
+    const hash = this._hashPassword(password)
+    const userDTO = await this._userDAO.findByLogin({login})
+    if (!userDTO) {
+      throw new BadRequestException('Cannot login!')
+    }
 
+    if (userDTO.hash !== hash) {
+      throw new BadRequestException('Cannot login!')
+    }
+
+    return await this._tokenService.create(userDTO)
   }
 
   /**
@@ -63,7 +75,11 @@ class UserService {
    * @returns {Promise<void>}
    */
   async logout({tokenContent}) {
-
+    const tokenDTO = await this._tokenService.verify(tokenContent)
+    if (!tokenDTO) {
+      throw new UnauthorizedException('Token unexpectedly got invalid!')
+    }
+    await this._tokenService.delete(tokenDTO)
   }
 
   /**
@@ -72,12 +88,12 @@ class UserService {
    */
   async verify({tokenContent}) {
     const tokenDTO = await this._tokenService.verify(tokenContent)
-    if(!tokenDTO) {
+    if (!tokenDTO) {
       throw new UnauthorizedException('Invalid token!')
     }
 
     const userDTO = await this._userDAO.find({id: tokenDTO.userId})
-    if(!userDTO) {
+    if (!userDTO) {
       throw new UnauthorizedException('Invalid token!')
     }
 
@@ -89,7 +105,14 @@ class UserService {
    * @returns {Promise<TokenDTO>}
    */
   async refresh({tokenContent}) {
-
+    const userDTO = await this.verify({tokenContent})
+    const oldTokenDTO = await this._tokenService.verify(tokenContent)
+    if (!oldTokenDTO) {
+      throw new UnauthorizedException('Invalid token!')
+    }
+    const newTokenDTO = await this._tokenService.create(userDTO)
+    await this._tokenService.delete(oldTokenDTO)
+    return newTokenDTO
   }
 
   /**
@@ -98,16 +121,22 @@ class UserService {
    * @returns {Promise<void>}
    */
   async updatePassword({userDTO, password}) {
-
+    must.be.instance(userDTO, this._userDAO.makeDTO().constructor)
+    must.be.notEmptyString(password)
+    userDTO.hash = this._hashPassword(password)
+    await this._userDAO.update({userDTO})
   }
 
   /**
    * @param {UserDTO} userDTO
-   * @param {string} userData
+   * @param {*} userData
    * @returns {Promise<void>}
    */
   async updateData({userDTO, userData}) {
-
+    must.be.instance(userDTO, this._userDAO.makeDTO().constructor)
+    must.be.object(userData)
+    userDTO.details = Object.assign({}, userData)
+    await this._userDAO.update({userDTO})
   }
 
   /**
@@ -115,7 +144,11 @@ class UserService {
    * @returns {Promise<void>}
    */
   async delete({userDTO}) {
-
+    must.be.instance(userDTO, this._userDAO.makeDTO().constructor)
+    await this._userDAO.getConnection().transaction(async transaction => {
+      await this._tokenService.deleteAllForUser({userId: userDTO.id, transaction})
+      await this._userDAO.delete({userDTO, transaction})
+    })
   }
 
   /**

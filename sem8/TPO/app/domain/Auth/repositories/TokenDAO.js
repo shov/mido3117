@@ -82,15 +82,20 @@ class TokenDAO extends ImportedBasicDAO {
 
   /**
    * @param {number} userId
+   * @param {?Transaction} transaction
    * @returns {Promise<void>}
    */
-  async deleteAllByUserId({userId}) {
+  async deleteAllByUserId({userId, transaction = null}) {
     must.be.number(userId)
 
     const query = this._connection
       .delete()
       .from(this._TABLE_NAME)
       .where({user_id: userId})
+
+    if(transaction) {
+      query.transacting(transaction)
+    }
 
     await query
   }

@@ -70,7 +70,7 @@ module.exports = [
             }
           },
           {
-            path: '/users/:id(\d+)',
+            path: '/users/:id(\\d+)',
             method: 'put',
             resolver: {
               controller: 'AuthController',
@@ -78,7 +78,7 @@ module.exports = [
             }
           },
           {
-            path: '/users/:id(\d+)',
+            path: '/users/:id(\\d+)',
             method: 'delete',
             resolver: {
               controller: 'AuthController',

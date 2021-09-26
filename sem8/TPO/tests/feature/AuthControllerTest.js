@@ -134,8 +134,13 @@ describe(`Auth Controller Test`, () => {
 
     expect(res.status).toBe(204)
 
-    const userDTO = await userService.verify({tokenContent: resReg.body.token})
-    expect(userDTO).toBe(null)
+    let notValid = false
+    try {
+      await userService.verify({tokenContent: resReg.body.token})
+    } catch (e) {
+      notValid = true
+    }
+    expect(notValid).toBe(true)
   })
 
   it(`Verify positive`, async () => {
@@ -181,10 +186,15 @@ describe(`Auth Controller Test`, () => {
     expect(typeof res.body?.token).toBe('string')
     expect(res.body.token === resReg.body.token).toBe(false)
 
-    let userDTO = await userService.verify({tokenContent: resReg.body.token})
-    expect(userDTO).toBe(null)
+    let oldNotValid = false
+    try {
+      await userService.verify({tokenContent: resReg.body.token})
+    } catch (e) {
+      oldNotValid = true
+    }
+    expect(oldNotValid).toBe(true)
 
-    userDTO = await userService.verify({tokenContent: res.body.token})
+    const userDTO = await userService.verify({tokenContent: res.body.token})
     expect(userDTO?.login).toBe(data.login)
   })
 
@@ -249,15 +259,21 @@ describe(`Auth Controller Test`, () => {
     expect(typeof resLogin.body?.token).toBe('string')
     expect(resLogin.body.token === resReg.body.token).toBe(false)
 
-    const res = await request(`/api/v1/delete/users/${resReg.body.id}`)
+    const res = await request.delete(`/api/v1/users/${resReg.body.id}`)
       .set('Authorization', `Bearer ${resReg.body.token}`)
 
     expect(res.status).toBe(204)
 
-    let userDTO = await userService.verify({tokenContent: resReg.body.token})
-    expect(userDTO).toBe(null)
+    let tokenNotValid = false
 
-    userDTO = await userDAO.findByLogin({login: data.login})
+    try {
+      await userService.verify({tokenContent: resReg.body.token})
+    } catch (e) {
+      tokenNotValid = true
+    }
+    expect(tokenNotValid).toBe(true)
+
+    const userDTO = await userDAO.findByLogin({login: data.login})
     expect(userDTO).toBe(null)
 
     let tokenDTO = await tokenDAO.find({tokenContent: resReg.body.token})

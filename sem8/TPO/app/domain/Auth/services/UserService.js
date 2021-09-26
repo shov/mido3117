@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken')
+const crypto = require('crypto')
+const {must, BadRequestException} = toweran
 
 class UserService {
   /**
-   * @DI app.domain.Auth.services.TokenService
    * @DI app.domain.Auth.repositories.UserDAO
+   * @DI app.domain.Auth.services.TokenService
    * @param {UserDAO} userDAO
    * @param {TokenService} tokenService
    */
@@ -19,6 +21,9 @@ class UserService {
      * @protected
      */
     this._tokenService = tokenService
+
+    this._passwordSalt = process.env.PASSWORD_SALT
+    must.be.notEmptyString(this._passwordSalt)
   }
 
   /**
@@ -28,7 +33,21 @@ class UserService {
    * @returns {Promise<{tokenDTO: TokenDTO, userDTO: UserDTO}>}
    */
   async register({login, password, userData}) {
+    const hash = this._hashPassword(password)
 
+    try {
+      const userDTO = await this._userDAO.create({login, hash, details: userData})
+      const tokenDTO = await this._tokenService.create(userDTO)
+
+      return {userDTO, tokenDTO}
+
+    } catch (e) {
+      if (/duplica/.test(e?.message || '')) {
+        throw new BadRequestException('Cannot register!')
+      }
+
+      throw e
+    }
   }
 
   /**
@@ -88,6 +107,17 @@ class UserService {
    */
   async delete({userDTO}) {
 
+  }
+
+  /**
+   * @param {string} password
+   * @return {string}
+   * @private
+   */
+  _hashPassword(password) {
+    return crypto.createHmac('sha256', this._passwordSalt)
+      .update(password)
+      .digest('hex')
   }
 }
 

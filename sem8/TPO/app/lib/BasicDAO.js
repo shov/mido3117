@@ -35,7 +35,7 @@ class BasicDAO {
     this._dto = dto || null
   }
 
-  makeDto(data = {}) {
+  makeDTO(data = {}) {
     if(!this._dto) {
       throw new Error(`Cannot make a DTO, not set!`)
     }

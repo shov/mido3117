@@ -23,7 +23,70 @@ module.exports = [
           controller: 'WelcomeController',
           action: 'greetings'
         },
-      }
+      },
+
+      // Auth controller
+      {
+        path: '/register',
+        method: 'post',
+        resolver: {
+          controller: 'AuthController',
+          action: 'register',
+        }
+      },
+      {
+        path: '/login',
+        method: 'post',
+        resolver: {
+          controller: 'AuthController',
+          action: 'login',
+        }
+      },
+      {
+        middleware: ['AuthMiddleware'],
+        sub: [
+          {
+            path: '/logout',
+            method: 'delete',
+            resolver: {
+              controller: 'AuthController',
+              action: 'logout',
+            }
+          },
+          {
+            path: '/verify',
+            method: 'get',
+            resolver: {
+              controller: 'AuthController',
+              action: 'verify',
+            }
+          },
+          {
+            path: '/refresh',
+            method: 'get',
+            resolver: {
+              controller: 'AuthController',
+              action: 'refresh',
+            }
+          },
+          {
+            path: '/users/:id(\d+)',
+            method: 'put',
+            resolver: {
+              controller: 'AuthController',
+              action: 'update',
+            }
+          },
+          {
+            path: '/users/:id(\d+)',
+            method: 'delete',
+            resolver: {
+              controller: 'AuthController',
+              action: 'delete',
+            }
+          },
+        ],
+      },
     ]
   },
 ]

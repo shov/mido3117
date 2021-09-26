@@ -23,6 +23,18 @@ class TokenDAO extends ImportedBasicDAO {
    */
   async create({userId, content, createdAt}) {
 
+    const tokenDTO = this.makeDTO({
+     userId, content, createdAt
+    })
+
+    const query = this._connection(this._TABLE_NAME)
+      .insert(tokenDTO.dataDB())
+      .returning('id')
+
+    const result = await query
+    tokenDTO.id = result[0]
+
+    return tokenDTO
   }
 
   /**

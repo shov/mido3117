@@ -6,7 +6,7 @@ const ImportedBasicDTO = require(APP_PATH + '/app/lib/BasicDTO')
  */
 class UserDTO extends ImportedBasicDTO {
   get id() {
-    return this._id
+    return this._id ? Number(this._id) : this._id
   }
 
   set id(value) {
@@ -60,6 +60,13 @@ class UserDTO extends ImportedBasicDTO {
    */
   clone(data = {}) {
     return super.clone(data)
+  }
+
+  dataDB() {
+    const data = this.dataSnakeCase()
+    delete data.id
+
+    return data
   }
 }
 

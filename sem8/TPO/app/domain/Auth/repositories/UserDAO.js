@@ -17,6 +17,29 @@ class UserDAO extends ImportedBasicDAO {
 
   /**
    * @param {string} login
+   * @param {string} hash
+   * @param  {*} details
+   * @returns {Promise<UserDTO>}
+   */
+  async create({login, hash, details}) {
+    const createdAt = new Date()
+
+    const userDTO = this.makeDTO({
+      login, hash, details, createdAt
+    })
+
+    const query = this._connection(this._TABLE_NAME)
+      .insert(userDTO.dataDB())
+      .returning('id')
+
+    const result = await query
+    userDTO.id = result[0]
+
+    return userDTO
+  }
+
+  /**
+   * @param {string} login
    * @returns {Promise<UserDTO|null>}
    */
   async findByLogin(login) {

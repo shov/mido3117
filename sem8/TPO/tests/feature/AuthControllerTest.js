@@ -51,9 +51,11 @@ describe(`Auth Controller Test`, () => {
 
     expect(res.status).toBe(201)
     expect(typeof res?.body?.token).toBe('string')
+    expect(typeof res?.body?.id).toBe('number')
 
     const userDTO = await userService.verify(res.body.token)
     expect(userDTO?.login).toBe(data.login)
+    expect(res?.body?.id).toBe(userDTO.id)
   })
 
   ;[ // Cases with not valid login either password or user data

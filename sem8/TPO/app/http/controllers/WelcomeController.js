@@ -7,7 +7,7 @@ const {
 class WelcomeController extends BasicController {
   greetings(req, res, next) {
     res.send({
-      message: `Toweran is on!`
+      message: `Check the documentations for routes`
     })
   }
 }

@@ -16,6 +16,7 @@ module.exports = {
     toweran.HTTPServiceProvider,
 
     //App service providers
+    require(`${toweran.APP_PATH}/app/serviceProviders/AppServiceProvider`),
   ],
 
   /**

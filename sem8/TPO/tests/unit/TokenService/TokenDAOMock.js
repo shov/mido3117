@@ -1,6 +1,8 @@
 class TokenDAOMock {
-  constructor(create, tokenDTO) {
-    this.create = create
+  constructor(methods, tokenDTO) {
+    Object.entries(methods).forEach(([name, cb]) => {
+      this[name] = cb
+    })
     this._dto = tokenDTO
   }
 

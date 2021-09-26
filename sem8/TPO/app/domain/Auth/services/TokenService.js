@@ -17,7 +17,7 @@ class TokenService {
     must.be.notEmptyString(this._secret)
 
     this._expTerm = Number(process.env.JWT_EXP_TERM)
-    if(this._expTerm < 1) {
+    if (this._expTerm < 1) {
       throw new Error(`JWT expiration term is invalid!`)
     }
   }
@@ -50,7 +50,30 @@ class TokenService {
    * @returns {Promise<TokenDTO|null>}
    */
   async verify(tokenContent) {
-    //ignoreExpiration
+    let payload = null
+
+    try {
+      payload = jwt.verify(tokenContent, this._secret, {ignoreExpiration: true})
+    } catch (e) {
+      return null
+    }
+
+    const tokenDTO = await this._tokenDAO.find(tokenContent)
+
+    if (!tokenDTO) {
+      return null
+    }
+
+    if (tokenDTO.userId !== payload.sub) {
+      return null
+    }
+
+    if (this._isExpired(tokenDTO, payload)) {
+      await this._tokenDAO.delete(tokenDTO)
+      return null
+    }
+
+    return tokenDTO
   }
 
   /**
@@ -77,7 +100,12 @@ class TokenService {
    * @protected
    */
   _isExpired(tokenDTO, payload) {
+    const now = Date.now()
+    if (payload.exp < now) {
+      return true
+    }
 
+    return (+tokenDTO.createdAt + this._expTerm) < now
   }
 
 }

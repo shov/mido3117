@@ -1,9 +1,9 @@
 import {StatusBar} from 'expo-status-bar'
 import React from 'react'
 import {StyleSheet, Text, View, TouchableWithoutFeedback, Dimensions} from 'react-native'
-import Canvas, {Path2D, CanvasRenderingContext2D} from 'react-native-canvas'
+import Canvas, {Path2D, CanvasRenderingContext2D, Image as CanvasImage} from 'react-native-canvas'
 import {PanGestureHandler} from "react-native-gesture-handler"
-import GestureDetector from 'react-native-gesture-detector'
+import {Asset} from 'expo-asset'
 
 const D = Dimensions.get('screen')
 
@@ -22,69 +22,86 @@ function drawBall(canvas: Canvas, ctx: CanvasRenderingContext2D, x: any, y: any,
     ctx.fill(arc)
 }
 
-function drawRectBg(canvas: Canvas, ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = '#0d0d15'
-
-    ctx.fillRect(0, 0, D.width, D.height)
+function clearCanvas(canvas: Canvas, ctx: CanvasRenderingContext2D) {
+    ctx.clearRect(0, 0, D.width, D.height)
 }
 
-function getGameLoop(canvas: Canvas, ctx: CanvasRenderingContext2D) {
+function getGameLoop(canvas: Canvas, ctx: CanvasRenderingContext2D, images: CanvasImage[]) {
     const max = 30
     let pinch = 0.2
 
     return () => {
 
-        drawRectBg(canvas, ctx)
+        clearCanvas(canvas, ctx)
+
+        images.forEach(i => {
+            ctx.drawImage(i, 100, 100, i.width, i.height)
+        })
 
         // @ts-ignore
-        for (let place of touches) {
-            // if (place.radius < 1) {
-            //     continue
-            // }
-            //
-            // if (place.radius > max) {
-            //     place.multiplier = -1
-            // }
-            //
-            // place.radius += pinch * place.multiplier
-            // if (place.radius < 1) {
-            //     continue
-            // }
-
-            drawBall(canvas, ctx, place.x, place.y, place.radius + 4, place.color)
-        }
+        // for (let place of touches) {
+        //     if (place.radius < 1) {
+        //         continue
+        //     }
+        //
+        //     if (place.radius > max) {
+        //         place.multiplier = -1
+        //     }
+        //
+        //     place.radius += pinch * place.multiplier
+        //     if (place.radius < 1) {
+        //         continue
+        //     }
+        //
+        //     drawBall(canvas, ctx, place.x, place.y, place.radius + 4, place.color)
+        // }
     }
 }
 
-function handleCanvas(canvas: Canvas) {
+async function loadImages(canvas: Canvas) {
+    const i = new CanvasImage(canvas)
+    const asset = Asset.fromModule(require('./assets/Retro-Mario-2-icon.png'));
+    i.src = asset.uri
+
+    return await new Promise(r => {
+        i.addEventListener('load', () => {
+            r([i])
+        })
+    })
+}
+
+async function handleCanvas(canvas: Canvas) {
     canvas.width = D.width
     canvas.height = D.height
     const ctx = canvas.getContext('2d')
     console.log(D)
-    setInterval(getGameLoop(canvas, ctx), 15)
+
+    const images = await loadImages(canvas)
+
+    setInterval(getGameLoop(canvas, ctx, images), 15)
 }
 
 export default function App() {
     return (
         <View style={styles.container}
               onTouchStart={(e) => {
-                  touches.push({
-                      radius: 1,
-                      multiplier: 1,
-                      x: e.nativeEvent.locationX,
-                      y: e.nativeEvent.locationY,
-                      color: '#ff5555',
-                  })
+                  // touches.push({
+                  //     radius: 1,
+                  //     multiplier: 1,
+                  //     x: e.nativeEvent.locationX,
+                  //     y: e.nativeEvent.locationY,
+                  //     color: '#ff5555',
+                  // })
               }
               }
               onTouchMove={(e) => {
-                  touches.push({
-                      radius: 1,
-                      multiplier: 1,
-                      x: e.nativeEvent.locationX,
-                      y: e.nativeEvent.locationY,
-                      color: '#ffcf55',
-                  })
+                  // touches.push({
+                  //     radius: 1,
+                  //     multiplier: 1,
+                  //     x: e.nativeEvent.locationX,
+                  //     y: e.nativeEvent.locationY,
+                  //     color: '#ffcf55',
+                  // })
               }
               }
         >

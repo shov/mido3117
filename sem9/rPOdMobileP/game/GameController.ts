@@ -26,12 +26,11 @@ export class GameController {
     }
 
     public readonly FRAME_RATE = 60
+    public static DEBUG = true
 
     protected _dimensions!: ScaledSize
     protected _canvas!: Canvas
     protected _ctx!: CanvasRenderingContext2D
-
-    protected _debug: boolean = true
 
     protected _defaultScene!: IGameScene
 
@@ -149,7 +148,7 @@ export class GameController {
     }
 
     protected _renderDebugInfo(canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, delta: number, fps: number) {
-        if(!this._debug) {
+        if(!GameController.DEBUG) {
             return
         }
 

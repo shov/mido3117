@@ -1,7 +1,7 @@
 import Canvas, {CanvasRenderingContext2D} from 'react-native-canvas'
 import {GameController} from './GameController'
 import {ScaledSize} from 'react-native'
-import {Body} from 'matter-js'
+import {Body, Constraint} from 'matter-js'
 
 export declare type TGameUpdateSubscriptionCallback = (dt: number, delta: number, fps: number) => any|Promise<any>
 export declare type TGameRenderSubscriptionCallback = (canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, delta: number, fps: number) => any|Promise<any>
@@ -19,7 +19,7 @@ export declare type TRenderSubscriptionsBatch = {
 }
 
 export declare interface IEntity {
-    init(dimensions: ScaledSize, canvas: Canvas, ctx: CanvasRenderingContext2D): Promise<void>
+    init(...args: any[]): Promise<void>,
     update?: TGameUpdateSubscriptionCallback,
     render?: TGameRenderSubscriptionCallback
 }
@@ -30,4 +30,8 @@ export declare interface IGameScene {
 
 export declare interface IBodiesIssuer {
     getDeclaredBodies(): Body[]
+}
+
+export declare interface IConstraintsIssuer {
+    getDeclaredConstraints(): Constraint[]
 }

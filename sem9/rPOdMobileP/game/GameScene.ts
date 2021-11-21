@@ -10,6 +10,8 @@ export class GameScene implements IGameScene {
     protected _game!: GameController
     protected _dimensions!: ScaledSize
 
+    // TODO destruction of entity objects
+
     public async load(game: GameController) {
         this._game = game
         this._dimensions = game.dimensions

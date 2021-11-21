@@ -4,12 +4,16 @@ import {StyleSheet, Text, View, TouchableWithoutFeedback, Dimensions} from 'reac
 import Canvas, {Path2D, CanvasRenderingContext2D, Image as CanvasImage} from 'react-native-canvas'
 import {PanGestureHandler} from "react-native-gesture-handler"
 import {Asset} from 'expo-asset'
-import {Engine, Composite, Bodies, World} from 'matter-js'
+import {Engine, Composite, Bodies, World, IChamferableBodyDefinition} from 'matter-js'
 
 const D = Dimensions.get('screen')
 
 let lastTouch = [D.width / 2, D.height / 2]
 let engine: Engine
+
+let bodyDefaultOptions: IChamferableBodyDefinition = {
+    friction: 1, restitution: 0, frictionStatic: 1,
+}
 
 function drawBall(canvas: Canvas, ctx: CanvasRenderingContext2D, x: any, y: any, ballRadius: any, color: string) {
     const arc = new Path2D(canvas)
@@ -38,10 +42,11 @@ function getGameLoop(canvas: Canvas, ctx: CanvasRenderingContext2D, images: Canv
 
         ctx.fillStyle = '#ffffff'
         ctx.font = '16px Arial'
-        ctx.fillText(`FPS: ${fps}`, 20, 80)
-        ctx.fillText(`Δ: ${delta.toFixed(2)}`, 20, 100)
-        ctx.fillText(`DT: ${dt}`, 20, 120)
-        ctx.fillText(`◇: ${bodiesNumber}`, 20, 140)
+        const vOffset = 20 // 80
+        ctx.fillText(`FPS: ${fps}`, 20, vOffset)
+        ctx.fillText(`Δ: ${delta.toFixed(2)}`, 20, vOffset + 20)
+        ctx.fillText(`DT: ${dt}`, 20, vOffset + 40)
+        ctx.fillText(`◇: ${bodiesNumber}`, 20, vOffset + 60)
         requestAnimationFrame(time => gameLoop(time))
     }
     return gameLoop
@@ -68,7 +73,7 @@ function render(canvas: Canvas) {
     for (let i = 0; i < bodies.length; i += 1) {
         let vertices = bodies[i].vertices
 
-        if(!bodies[i].isStatic && (vertices[0].y > D.height || vertices[0].x < 0 || vertices[0].x > D.width)) {
+        if (!bodies[i].isStatic && (vertices[0].y > D.height || vertices[0].x < 0 || vertices[0].x > D.width)) {
             World.remove(engine.world, bodies[i])
             console.log('removed body')
             continue
@@ -98,41 +103,18 @@ async function handleCanvas(canvas: Canvas) {
 
     const images = await loadImages(canvas)
 
-    // matter
     engine = Engine.create()
-    let boxA = Bodies.rectangle(180, 0, 50, 50)
-    let boxB = Bodies.rectangle(200, 50, 50, 50, {
-
-    })
-    let ground = Bodies.rectangle(400, 610, 810, 60, {isStatic: true})
-    Composite.add(engine.world, [boxA, boxB, ground])
-
-    // _matter
-
     requestAnimationFrame(getGameLoop(canvas, ctx, images))
 }
 
+import {GameController} from './game/GameController'
+import {GameScene} from './game/GameScene'
+
 export default function App() {
     return (
-        <View style={styles.container}
-              onTouchStart={({nativeEvent}) => {
-                  Composite.add(engine.world, [
-                      Bodies.rectangle(
-                          nativeEvent.locationX,
-                          nativeEvent.locationY,
-                          50,
-                          50,
-                      )
-                  ])
-              }
-              }
-              onTouchMove={(e) => {
-                  lastTouch = [e.nativeEvent.locationX, e.nativeEvent.locationY]
-              }
-              }
-        >
+        <View style={styles.container} >
             <StatusBar hidden={true} />
-            <Canvas style={styles.canvas} ref={handleCanvas} />
+            <Canvas style={styles.canvas} ref={GameController.create(new GameScene())} />
         </View>
     )
 }

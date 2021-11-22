@@ -2,7 +2,10 @@
     "compilerOptions": {
         "target": "ES5",
         "strict": true,
-        "lib": ["DOM", "ES2020"]
+        "lib": [
+            "DOM",
+            "ES2020",
+        ]
     },
     "include": ["www/src/*"]
 }

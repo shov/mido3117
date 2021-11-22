@@ -1,13 +1,14 @@
+import {GameController} from './game/GameController'
+import {GameScene} from './game/GameScene'
+import {Dimensions} from './game/Dimensions'
+
 document.addEventListener('deviceready', () => {
-    // @ts-ignore
-
-
+    const canvas: HTMLCanvasElement = document.getElementById('canvas')! as HTMLCanvasElement
     (window as any).plugins.screensize.get((o: any) => {
-        document.getElementById('out')!.innerHTML += JSON.stringify(o)
+        Dimensions.set(o)
+        GameController.create(new GameScene())(canvas)
     }, (o: any) => {
-        document.getElementById('out')!.innerHTML += JSON.stringify(o)
+        throw new Error(`Can't get screen size! ${o.message || o}`)
     })
 
-    console.log('Running cordova-' + cordova.platformId + '@' + cordova.version)
-    document.getElementById('deviceready')!.classList.add('ready')
 }, false)

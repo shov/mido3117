@@ -48,6 +48,9 @@ export class GameController {
         post: [],
     }
 
+    protected _updateSubscriptionMap: Map<(TGameUpdateSubscriptionCallback | IEntity), number> = new Map()
+    protected _renderSubscriptionMap: Map<(TGameRenderSubscriptionCallback | IEntity), number> = new Map()
+
     protected _lastFrameTime!: number
 
     protected _engine!: Engine
@@ -70,26 +73,46 @@ export class GameController {
 
     public subscribeOnUpdate(subscriber: TGameUpdateSubscriptionCallback | IEntity) {
         if ('function' === typeof (subscriber as IEntity)?.update) {
-            this._updateSubscribers.default.push((subscriber as IEntity).update!.bind(subscriber))
+            const i = this._updateSubscribers.default.push((subscriber as IEntity).update!.bind(subscriber)) - 1
+            this._updateSubscriptionMap.set(subscriber, i)
             return
         }
 
         if ('function' === typeof subscriber) {
-            this._updateSubscribers.default.push(subscriber)
+            const i = this._updateSubscribers.default.push(subscriber) - 1
+            this._updateSubscriptionMap.set(subscriber, i)
             return
         }
     }
 
+    public unsubscribeUpdate(subscriber: TGameUpdateSubscriptionCallback | IEntity) {
+        const i = this._updateSubscriptionMap.get(subscriber)
+        if(!i || !this._updateSubscribers.default[i]) {
+            return
+        }
+        this._updateSubscribers.default = this._updateSubscribers.default.filter((_, j) => j !== i)
+    }
+
     public subscribeOnRender(subscriber: TGameRenderSubscriptionCallback | IEntity) {
         if ('function' === typeof (subscriber as IEntity)?.render) {
-            this._renderSubscribers.default.push((subscriber as IEntity).render!.bind(subscriber))
+            const i = this._renderSubscribers.default.push((subscriber as IEntity).render!.bind(subscriber)) - 1
+            this._renderSubscriptionMap.set(subscriber, i)
             return
         }
 
         if ('function' === typeof subscriber) {
-            this._renderSubscribers.default.push(subscriber)
+            const i = this._renderSubscribers.default.push(subscriber) - 1
+            this._renderSubscriptionMap.set(subscriber, i)
             return
         }
+    }
+
+    public unsubscribeRender(subscriber: TGameRenderSubscriptionCallback | IEntity) {
+        const i = this._renderSubscriptionMap.get(subscriber)
+        if(!i || !this._renderSubscribers.default[i]) {
+            return
+        }
+        this._renderSubscribers.default = this._renderSubscribers.default.filter((_, j) => j !== i)
     }
 
     protected async _initCanvas(canvas: Canvas) {

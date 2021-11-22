@@ -50,8 +50,13 @@ export abstract class AStaticShapesIssuer {
             }
             pen.lineTo(vertices[0].x, vertices[0].y)
 
+            if(shape.fillColor) {
+                ctx.fillStyle = shape.fillColor
+                ctx.fill(pen)
+            }
+
             ctx.lineWidth = 1
-            ctx.strokeStyle = '#fff906'
+            ctx.strokeStyle = shape.color || '#fff906'
             ctx.stroke(pen)
         })
     }

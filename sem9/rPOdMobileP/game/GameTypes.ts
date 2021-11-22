@@ -55,5 +55,7 @@ export declare type TStaticShape = {
     h?: number,
     r?: number,
     angle: number,
-    vertices: {x: number, y: number}[]
+    vertices: {x: number, y: number}[],
+    color?: string,
+    fillColor?: string,
 }

@@ -39,7 +39,7 @@ export class Boat extends AStaticShapesIssuer implements IEntity {
     }
 
 
-    async init(canvas: Canvas, x: number, y: number, boundaries: { left: number, right: number }) {
+    public async init(canvas: Canvas, x: number, y: number, boundaries: { left: number, right: number }) {
         this._shape.x = x
         this._shape.y = y
         this._updateShapeVertices()
@@ -57,7 +57,7 @@ export class Boat extends AStaticShapesIssuer implements IEntity {
         return [this._shape]
     }
 
-    update(dt: number, input: TInputState, delta: number, fps: number): any {
+    public update(dt: number, input: TInputState, delta: number, fps: number): any {
         const boatWasMoving = this._boatIsMoving
         if (input.leftSideTrigger && !input.rightSideTrigger) {
             this._velocity.x = -this.BOAT_SPEED
@@ -112,7 +112,7 @@ export class Boat extends AStaticShapesIssuer implements IEntity {
        this._updateShapeVertices()
     }
 
-    render(canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, input: TInputState, delta: number, fps: number): any {
+    public render(canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, input: TInputState, delta: number, fps: number): any {
 
         const shape = this._shape
         if(!shape.w || !shape.h) {

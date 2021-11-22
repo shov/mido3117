@@ -1,4 +1,4 @@
-import {IBodiesIssuer, IConstraintsIssuer, IEntity} from '../GameTypes'
+import {IBodiesIssuer, IConstraintsIssuer, IEntity, TInputState} from '../GameTypes'
 import {ScaledSize} from 'react-native'
 import Canvas, {Path2D, CanvasRenderingContext2D, Image} from 'react-native-canvas'
 import {Bodies, Body, Constraint} from 'matter-js'
@@ -48,7 +48,7 @@ export class Canon extends ARenderedBodyIssuer implements IEntity, IBodiesIssuer
         return [this._constraint]
     }
 
-    render(canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, delta: number, fps: number): any {
+    render(canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, input: TInputState, delta: number, fps: number): any {
         const pen = new Path2D(canvas)
         const vertices = this._body.vertices
 

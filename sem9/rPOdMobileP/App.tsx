@@ -109,12 +109,19 @@ async function handleCanvas(canvas: Canvas) {
 
 import {GameController} from './game/GameController'
 import {GameScene} from './game/GameScene'
+import {InputController} from './game/InputController'
+
+const input = InputController.create()
 
 export default function App() {
     return (
-        <View style={styles.container} >
+        <View style={styles.container}
+              onTouchStart={input.onTouchStart.bind(input)}
+              onTouchMove={input.onTouchMove.bind(input)}
+              onTouchEnd={input.onTouchEnd.bind(input)}
+        >
             <StatusBar hidden={true} />
-            <Canvas style={styles.canvas} ref={GameController.create(new GameScene())} />
+            <Canvas style={styles.canvas} ref={GameController.create(new GameScene(), input)} />
         </View>
     )
 }
@@ -125,7 +132,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     canvas: {
-        backgroundColor: '#000000',
+        backgroundColor: '#93bfc9',
         position: 'absolute',
         width: '100%',
         height: '100%',

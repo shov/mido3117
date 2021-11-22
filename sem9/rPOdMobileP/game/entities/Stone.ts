@@ -1,4 +1,4 @@
-import {IBodiesIssuer, IEntity} from '../GameTypes'
+import {IBodiesIssuer, IEntity, TInputState} from '../GameTypes'
 import {ScaledSize} from 'react-native'
 import Canvas, {Path2D, CanvasRenderingContext2D, Image} from 'react-native-canvas'
 import {Bodies, Body} from 'matter-js'
@@ -35,7 +35,7 @@ export class Stone extends ARenderedBodyIssuer implements IEntity, IBodiesIssuer
         return [this._body]
     }
 
-    render(canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, delta: number, fps: number): any {
+    render(canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, input: TInputState, delta: number, fps: number): any {
         const vertices = this._body.vertices
         const pen = new Path2D(canvas)
 

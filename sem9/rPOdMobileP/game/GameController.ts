@@ -5,10 +5,11 @@ import {
     IEntity,
     IGameScene,
     TGameRenderSubscriptionCallback,
-    TGameUpdateSubscriptionCallback,
+    TGameUpdateSubscriptionCallback, TInputState,
     TRenderSubscriptionsBatch,
     TUpdateSubscriptionsBatch
 } from './GameTypes'
+import {InputController} from './InputController'
 
 export class GameController {
     private static _instance?: GameController
@@ -16,11 +17,11 @@ export class GameController {
     private constructor() {
     }
 
-    // TODO input controller
-    public static create(scene: IGameScene): (canvas: Canvas) => Promise<void> {
+    public static create(scene: IGameScene, input: InputController): (canvas: Canvas) => Promise<void> {
         if (!GameController._instance) {
             GameController._instance = new GameController()
             GameController._instance._defaultScene = scene
+            GameController._instance._inputController = input
         }
         return GameController._instance._initCanvas.bind(GameController._instance)
     }
@@ -33,6 +34,7 @@ export class GameController {
     protected _ctx!: CanvasRenderingContext2D
 
     protected _defaultScene!: IGameScene
+    protected _inputController!: InputController
 
     protected _updateSubscribers: TUpdateSubscriptionsBatch = {
         pre: [],
@@ -105,6 +107,7 @@ export class GameController {
         await this._defaultScene.load(this)
 
         // internal subscriptions
+        this._updateSubscribers.pre.push(this._debugModeSwitch.bind(this))
         this._updateSubscribers.post.push(this._updateEngine.bind(this))
         this._renderSubscribers.pre.push(this._clearCanvas.bind(this))
         this._renderSubscribers.post.push(this._renderDebugInfo.bind(this))
@@ -118,28 +121,32 @@ export class GameController {
         const delta = time - this._lastFrameTime
         this._lastFrameTime = time
         const fps = Math.floor(1000 / delta)
-        let dt = Number(Math.round(delta / (1000 / this.FRAME_RATE)).toFixed(2))
+        let dt = Math.max(0, Number(Math.round(delta / (1000 / this.FRAME_RATE)).toFixed(2)))
 
         const partKeys = ['pre', 'default', 'post']
 
         // update
         partKeys.forEach(((part: keyof TUpdateSubscriptionsBatch) => {
             this._updateSubscribers[part].forEach((callback: TGameUpdateSubscriptionCallback) => {
-                callback(dt, delta, fps)
+                callback(dt, this._inputController.state, delta, fps)
             })
         }) as any)
 
         // render
         partKeys.forEach(((part: keyof TRenderSubscriptionsBatch) => {
             this._renderSubscribers[part].forEach((callback: TGameRenderSubscriptionCallback) => {
-                callback(this._canvas, this._ctx, dt, delta, fps)
+                callback(this._canvas, this._ctx, dt, this._inputController.state, delta, fps)
             })
         }) as any)
 
         requestAnimationFrame(time => this._gameLoop(time))
     }
 
-    protected _updateEngine(dt: number, delta: number, fps: number) {
+    protected _debugModeSwitch(dt: number, input: TInputState, delta: number, fps: number) {
+        GameController.DEBUG = input.debugTrigger
+    }
+
+    protected _updateEngine(dt: number, input: TInputState, delta: number, fps: number) {
         Engine.update(this._engine, fps)
     }
 
@@ -147,8 +154,8 @@ export class GameController {
         this._ctx.clearRect(0, 0, this._dimensions.width, this._dimensions.height)
     }
 
-    protected _renderDebugInfo(canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, delta: number, fps: number) {
-        if(!GameController.DEBUG) {
+    protected _renderDebugInfo(canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, input: TInputState, delta: number, fps: number) {
+        if (!GameController.DEBUG) {
             return
         }
 

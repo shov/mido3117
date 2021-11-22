@@ -3,8 +3,8 @@ import {GameController} from './GameController'
 import {ScaledSize} from 'react-native'
 import {Body, Constraint} from 'matter-js'
 
-export declare type TGameUpdateSubscriptionCallback = (dt: number, delta: number, fps: number) => any|Promise<any>
-export declare type TGameRenderSubscriptionCallback = (canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, delta: number, fps: number) => any|Promise<any>
+export declare type TGameUpdateSubscriptionCallback = (dt: number, input: TInputState, delta: number, fps: number) => any|Promise<any>
+export declare type TGameRenderSubscriptionCallback = (canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, input: TInputState, delta: number, fps: number) => any|Promise<any>
 
 export declare type TUpdateSubscriptionsBatch = {
     pre: TGameUpdateSubscriptionCallback[],
@@ -34,4 +34,26 @@ export declare interface IBodiesIssuer {
 
 export declare interface IConstraintsIssuer {
     getDeclaredConstraints(): Constraint[]
+}
+
+export declare type TInputState = {
+    timestamp?: number,
+    leftSideTrigger: boolean,
+    rightSideTrigger: boolean,
+    fingerCurrPos?: { x: number, y: number },
+    debugTrigger: boolean,
+    lastStart?: {
+        x: number, y: number, timestamp: number,
+    }
+}
+
+export declare type TStaticShape = {
+    kind?: string,
+    x: number,
+    y: number,
+    w?: number,
+    h?: number,
+    r?: number,
+    angle: number,
+    vertices: {x: number, y: number}[]
 }

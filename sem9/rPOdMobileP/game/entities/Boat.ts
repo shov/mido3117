@@ -2,6 +2,7 @@ import {IEntity, TInputState, TStaticShape} from '../GameTypes'
 import Canvas, {CanvasRenderingContext2D, Image} from 'react-native-canvas'
 import {AStaticShapesIssuer} from '../AStaticShapesIssuer'
 import {Resources} from '../Resources'
+import {Screen} from '../Screen'
 
 export class Boat extends AStaticShapesIssuer implements IEntity {
     protected readonly BOAT_SPEED = 4

@@ -3,6 +3,13 @@ import {GameController} from './GameController'
 import {ScaledSize} from 'react-native'
 import {Body, Constraint} from 'matter-js'
 
+export declare type TScaledSize = {
+    width: number,
+    height: number,
+    scale: number,
+    origin: ScaledSize,
+}
+
 export declare type TGameUpdateSubscriptionCallback = (dt: number, input: TInputState, delta: number, fps: number) => any|Promise<any>
 export declare type TGameRenderSubscriptionCallback = (canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, input: TInputState, delta: number, fps: number) => any|Promise<any>
 

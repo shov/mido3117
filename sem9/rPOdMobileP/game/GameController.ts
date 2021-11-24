@@ -1,15 +1,15 @@
 import Canvas, {CanvasRenderingContext2D} from 'react-native-canvas'
-import {Dimensions, ScaledSize} from 'react-native'
 import {Engine} from 'matter-js'
 import {
     IEntity,
     IGameScene,
     TGameRenderSubscriptionCallback,
     TGameUpdateSubscriptionCallback, TInputState,
-    TRenderSubscriptionsBatch,
+    TRenderSubscriptionsBatch, TScaledSize,
     TUpdateSubscriptionsBatch
 } from './GameTypes'
 import {InputController} from './InputController'
+import {Screen} from './Screen'
 
 export class GameController {
     private static _instance?: GameController
@@ -29,7 +29,7 @@ export class GameController {
     public readonly FRAME_RATE = 60
     public static DEBUG = true
 
-    protected _dimensions!: ScaledSize
+    protected _dimensions: TScaledSize = Screen.get()
     protected _canvas!: Canvas
     protected _ctx!: CanvasRenderingContext2D
 
@@ -116,12 +116,12 @@ export class GameController {
     }
 
     protected async _initCanvas(canvas: Canvas) {
-        this._dimensions = Dimensions.get('screen')
         this._canvas = canvas
-        canvas.height = this.dimensions.height
-        canvas.width = this.dimensions.width
+        canvas.width = this.dimensions.origin.width
+        canvas.height = this.dimensions.origin.height
 
         this._ctx = canvas.getContext('2d')
+        this._ctx.scale(this.dimensions.scale, this.dimensions.scale)
 
         // physic engine
         this._engine = Engine.create()
@@ -183,10 +183,10 @@ export class GameController {
         }
 
         ctx.fillStyle = '#ffffff'
-        ctx.font = '16px Arial'
+        ctx.font = '8px Arial'
         const vOffset = 20 // 80
         ctx.fillText(`FPS: ${fps}`, 20, vOffset)
-        ctx.fillText(`Δ: ${delta.toFixed(2)}`, 20, vOffset + 20)
-        ctx.fillText(`DT: ${dt}`, 20, vOffset + 40)
+        ctx.fillText(`Δ: ${delta.toFixed(2)}`, 20, vOffset + 10)
+        ctx.fillText(`DT: ${dt}`, 20, vOffset + 20)
     }
 }

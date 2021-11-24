@@ -1,5 +1,6 @@
-import {Dimensions, GestureResponderEvent, ScaledSize} from 'react-native'
-import {TInputState} from './GameTypes'
+import {GestureResponderEvent} from 'react-native'
+import {TInputState, TScaledSize} from './GameTypes'
+import {Screen} from './Screen'
 
 export class InputController {
     private static _instance?: InputController
@@ -16,9 +17,9 @@ export class InputController {
 
     protected readonly TOUCH_TIMEOUT_MAX = 500
 
-    protected readonly _dimensions: ScaledSize = Dimensions.get('screen')
+    protected _dimensions: TScaledSize = Screen.get()
     protected readonly _middleX = this._dimensions.width / 2
-    protected readonly _debugButtonBoundaries = {topLeft: {x: 0, y: 0}, bottomRight: {x: 50, y: 50}}
+    protected readonly _debugButtonBoundaries = {topLeft: {x: 0, y: 0}, bottomRight: {x: 30, y: 30}}
 
     protected _state: TInputState = {
         leftSideTrigger: false,

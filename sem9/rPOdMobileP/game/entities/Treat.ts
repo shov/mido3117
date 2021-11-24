@@ -11,21 +11,23 @@ declare type TTreatType = {
     luckTest: (rand: number) => boolean,
     fillColor: string,
     fallingVelocity: number,
-    // assetPath: string,
-    // assetOffset: number,
-    // frameNumber: number,
+
+    assetOffset?: number,
+    frameNumber?: number,
 }
 
 export const treatTypeList = [
     {
         name: 'red-star',
-        score: 25,
+        score: 70,
         zones: ['A', 'B', 'B', 'D', 'D', 'E',],
         luckTest: (rand: number) => {
             return rand > 0.8
         },
         fillColor: '#ee1616',
         fallingVelocity: 2,
+        assetOffset: 24,
+        frameNumber: 4,
     },
     {
         name: 'gray_fish',
@@ -36,6 +38,8 @@ export const treatTypeList = [
         },
         fillColor: '#008bff',
         fallingVelocity: 6,
+        assetOffset: 0,
+        frameNumber: 4,
     },
 ]
 
@@ -82,6 +86,12 @@ export class Treat extends AStaticShapesIssuer implements IEntity {
         this._type = type
         this._shape.fillColor = type.fillColor
         this._velocity.y = type.fallingVelocity
+
+        this._sprite = new Image(canvas)
+        await new Promise(r => {
+            this._sprite.addEventListener('load', r)
+            this._sprite.src = Resources.loadImage('treats', require('../../assets/treats.png')).uri
+        })
     }
 
     public getDeclaredShapes(): TStaticShape[] {
@@ -133,10 +143,50 @@ export class Treat extends AStaticShapesIssuer implements IEntity {
         this._updateShapeVertices()
     }
 
+    protected _deltaProgress = 0
+    protected _currFrame = 0
+    protected _frameRate = 200
+
     public render(canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, input: TInputState, delta: number, fps: number): any {
+        this._deltaProgress += delta
         if (this._hidden) {
             return
         }
+
+        // Animation
+        if (typeof this._type.frameNumber === 'number' && typeof this._type.assetOffset === 'number') {
+            const frameOffsets = []
+            let lastFrame
+            for (let i = 0; i < this._type.frameNumber; i++) {
+                const num: number = frameOffsets.push({
+                    x: lastFrame ? lastFrame.x + this._shape.w! : 0,
+                    y: this._type.assetOffset,
+                }) - 1
+                lastFrame = frameOffsets[num]
+            }
+
+
+            if (this._deltaProgress > this._frameRate) {
+                this._deltaProgress = 0
+                this._currFrame++
+                if (this._currFrame >= this._type.frameNumber) {
+                    this._currFrame = 0
+                }
+            }
+
+            ctx.drawImage(
+                this._sprite,
+                frameOffsets[this._currFrame].x,
+                frameOffsets[this._currFrame].y,
+                this._shape.w!,
+                this._shape.h!,
+                this._shape.x - this._shape.w! / 2,
+                this._shape.y - this._shape.h! / 2,
+                this._shape.w!,
+                this._shape.h!,
+            )
+        }
+
         this._debugRender(canvas, ctx)
     }
 }

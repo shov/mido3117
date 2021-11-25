@@ -2,6 +2,7 @@ import {GameController} from './GameController'
 import {IGameScene, TGameRenderSubscriptionCallback, TGameUpdateSubscriptionCallback, TScaledSize} from './GameTypes'
 import {Boat} from './entities/Boat'
 import {Treat, treatTypeList} from './entities/Treat'
+import {Ocean} from './entities/Ocean'
 
 export class GameScene implements IGameScene {
     protected _game!: GameController
@@ -9,12 +10,35 @@ export class GameScene implements IGameScene {
 
     // TODO destruction of entity objects
 
+    public loadingScreenRenderer(game: GameController) {
+        game.ctx.clearRect(0, 0, game.dimensions.width, game.dimensions.height)
+        game.ctx.fillStyle = '#243862'
+        game.ctx.fillRect(0, 0, game.dimensions.width, game.dimensions.height)
+        game.ctx.fillStyle = '#eac210'
+        game.ctx.font = '45px Arial'
+        game.ctx.fillText('LOADING...', game.dimensions.width / 2 - 20 * 5, game.dimensions.height / 2 - 23)
+    }
+
     public async load(game: GameController) {
         this._game = game
         this._dimensions = game.dimensions
 
         // BOAT
         const boat = new Boat()
+
+        {
+            // OCEAN WAVE 1
+            const waveA = new Ocean(
+                game.dimensions.height,
+                game.dimensions.width,
+                game.dimensions.height - boat.shape.h! * 1.5,
+                1,
+                '#5763b6'
+            )
+            await waveA.init(game.canvas, game.ctx)
+            game.subscribeOnRender(waveA)
+        }
+
         await boat.init(
             this._game.canvas,
             game.dimensions.width / 2,
@@ -101,8 +125,8 @@ export class GameScene implements IGameScene {
                     game.subscribeOnRender(treat)
                 }
 
-                for(let [treatKey, {toFree}] of treatMap.entries()) {
-                    if(toFree) removeTreat(treatKey)
+                for (let [treatKey, {toFree}] of treatMap.entries()) {
+                    if (toFree) removeTreat(treatKey)
                 }
 
                 nexTime = Date.now() + MAX_NEXT_TREAT * Number(Math.random().toFixed(3))
@@ -113,11 +137,22 @@ export class GameScene implements IGameScene {
                 ctx.fillStyle = '#ffcf55'
                 ctx.strokeStyle = '#0032b7'
                 ctx.lineWidth = 0.5
-                ctx.font = '14px Arial'
-                ctx.fillText(`SCORE ${score}`, game.dimensions.width / 2 - ((6 + String(score).length) / 2) * 8, 60)
-                ctx.strokeText(`SCORE ${score}`, game.dimensions.width / 2 - ((6 + String(score).length) / 2) * 8, 60)
+                ctx.font = '24px Arial'
+                ctx.fillText(`SCORE ${score}`, game.dimensions.width / 2 - ((6 + String(score).length) / 2) * 18, 60)
+                ctx.strokeText(`SCORE ${score}`, game.dimensions.width / 2 - ((6 + String(score).length) / 2) * 18, 60)
             }
             game.subscribeOnRender(scoreRender)
         }
+
+        // OCEAN WAVE 2
+        const waveB = new Ocean(
+            game.dimensions.height,
+            game.dimensions.width,
+            game.dimensions.height - boat.shape.h! / 1.5,
+            -0.5,
+            '#32b5c5'
+        )
+        await waveB.init(game.canvas, game.ctx)
+        game.subscribeOnRender(waveB, 'post')
     }
 }

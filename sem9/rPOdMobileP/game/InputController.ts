@@ -19,7 +19,7 @@ export class InputController {
 
     protected _dimensions: TScaledSize = Screen.get()
     protected readonly _middleX = this._dimensions.width / 2
-    protected readonly _debugButtonBoundaries = {topLeft: {x: 0, y: 0}, bottomRight: {x: 30, y: 30}}
+    protected readonly _debugButtonBoundaries = {topLeft: {x: 0, y: 0}, bottomRight: {x: 50, y: 50}}
 
     protected _state: TInputState = {
         leftSideTrigger: false,

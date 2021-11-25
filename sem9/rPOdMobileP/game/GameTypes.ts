@@ -32,6 +32,7 @@ export declare interface IEntity {
 }
 
 export declare interface IGameScene {
+    loadingScreenRenderer(game: GameController): void
     load(game: GameController): Promise<void>
 }
 

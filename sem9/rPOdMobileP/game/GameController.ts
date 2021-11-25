@@ -71,48 +71,49 @@ export class GameController {
         return this._ctx
     }
 
-    public subscribeOnUpdate(subscriber: TGameUpdateSubscriptionCallback | IEntity) {
+    public subscribeOnUpdate(subscriber: TGameUpdateSubscriptionCallback | IEntity, stage: keyof TUpdateSubscriptionsBatch = 'default') {
         if ('function' === typeof (subscriber as IEntity)?.update) {
-            const i = this._updateSubscribers.default.push((subscriber as IEntity).update!.bind(subscriber)) - 1
+            const i = this._updateSubscribers[stage].push((subscriber as IEntity).update!.bind(subscriber)) - 1
             this._updateSubscriptionMap.set(subscriber, i)
             return
         }
 
         if ('function' === typeof subscriber) {
-            const i = this._updateSubscribers.default.push(subscriber) - 1
+            const i = this._updateSubscribers[stage].push(subscriber) - 1
             this._updateSubscriptionMap.set(subscriber, i)
             return
         }
     }
 
-    public unsubscribeUpdate(subscriber: TGameUpdateSubscriptionCallback | IEntity) {
+    public unsubscribeUpdate(subscriber: TGameUpdateSubscriptionCallback | IEntity, stage: keyof TUpdateSubscriptionsBatch = 'default') {
         const i = this._updateSubscriptionMap.get(subscriber)
-        if(!i || !this._updateSubscribers.default[i]) {
+        if(!i || !this._updateSubscribers[stage][i]) {
             return
         }
-        this._updateSubscribers.default = this._updateSubscribers.default.filter((_, j) => j !== i)
+        this._updateSubscribers[stage] = this._updateSubscribers[stage].filter((_, j) => j !== i)
     }
 
-    public subscribeOnRender(subscriber: TGameRenderSubscriptionCallback | IEntity) {
+    public subscribeOnRender(
+        subscriber: TGameRenderSubscriptionCallback | IEntity, stage: keyof TRenderSubscriptionsBatch = 'default') {
         if ('function' === typeof (subscriber as IEntity)?.render) {
-            const i = this._renderSubscribers.default.push((subscriber as IEntity).render!.bind(subscriber)) - 1
+            const i = this._renderSubscribers[stage].push((subscriber as IEntity).render!.bind(subscriber)) - 1
             this._renderSubscriptionMap.set(subscriber, i)
             return
         }
 
         if ('function' === typeof subscriber) {
-            const i = this._renderSubscribers.default.push(subscriber) - 1
+            const i = this._renderSubscribers[stage].push(subscriber) - 1
             this._renderSubscriptionMap.set(subscriber, i)
             return
         }
     }
 
-    public unsubscribeRender(subscriber: TGameRenderSubscriptionCallback | IEntity) {
+    public unsubscribeRender(subscriber: TGameRenderSubscriptionCallback | IEntity, stage: keyof TRenderSubscriptionsBatch = 'default') {
         const i = this._renderSubscriptionMap.get(subscriber)
-        if(!i || !this._renderSubscribers.default[i]) {
+        if(!i || !this._renderSubscribers[stage][i]) {
             return
         }
-        this._renderSubscribers.default = this._renderSubscribers.default.filter((_, j) => j !== i)
+        this._renderSubscribers[stage] = this._renderSubscribers[stage].filter((_, j) => j !== i)
     }
 
     protected async _initCanvas(canvas: Canvas) {
@@ -121,12 +122,12 @@ export class GameController {
         canvas.height = this.dimensions.origin.height
 
         this._ctx = canvas.getContext('2d')
-        this._ctx.scale(this.dimensions.scale, this.dimensions.scale)
 
         // physic engine
         this._engine = Engine.create()
 
         // load scene
+        this._defaultScene.loadingScreenRenderer(this)
         await this._defaultScene.load(this)
 
         // internal subscriptions
@@ -183,10 +184,10 @@ export class GameController {
         }
 
         ctx.fillStyle = '#ffffff'
-        ctx.font = '8px Arial'
+        ctx.font = '14px Arial'
         const vOffset = 20 // 80
         ctx.fillText(`FPS: ${fps}`, 20, vOffset)
-        ctx.fillText(`Δ: ${delta.toFixed(2)}`, 20, vOffset + 10)
-        ctx.fillText(`DT: ${dt}`, 20, vOffset + 20)
+        ctx.fillText(`Δ: ${delta.toFixed(2)}`, 20, vOffset*2)
+        ctx.fillText(`DT: ${dt}`, 20, vOffset*3)
     }
 }

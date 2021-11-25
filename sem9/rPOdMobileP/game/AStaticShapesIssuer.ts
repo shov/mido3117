@@ -1,5 +1,4 @@
 import {TStaticShape} from './GameTypes'
-import {Body} from 'matter-js'
 import Canvas, {CanvasRenderingContext2D, Path2D} from 'react-native-canvas'
 import {GameController} from './GameController'
 

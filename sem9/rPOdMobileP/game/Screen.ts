@@ -7,8 +7,8 @@ export class Screen {
             const originScaledSize = Dimensions.get('screen')
             Screen._scaledSize = {
                 origin: originScaledSize,
-                width: originScaledSize.width / originScaledSize.scale,
-                height: originScaledSize.height / originScaledSize.scale,
+                width: originScaledSize.width,
+                height: originScaledSize.height,
                 scale: originScaledSize.scale,
             }
         }

@@ -20,20 +20,18 @@ declare type TCloud = {
 
 export class Sky implements IEntity {
     protected _cloudList: TCloud[] = []
-    protected readonly MAX_CLOUD_NUMBER = 3
-    protected readonly CHANCE_NEW_CLOUD_SPAWN = 0.9
+    protected readonly MAX_CLOUD_NUMBER = 5
     protected readonly SPEED_MIN = 0.3
     protected readonly SPEED_MAX = 0.5
     protected readonly OFFSET_MIN = 8
     protected readonly OFFSET_MAX = 10
     protected HIGH_MIN!: number
     protected HIGH_MAX!: number
-    protected readonly BEHIND_THE_SCENE_MIN = 150
-    protected readonly BEHIND_THE_SCENE_MAX = 200
+    protected readonly BEHIND_THE_SCENE_MIN = 50
+    protected readonly BEHIND_THE_SCENE_MAX = 100
     protected readonly COLOR_GREY = '#b0b0b0'
     protected readonly COLOR_WHITE = '#ffffff'
-    protected _timeMadeLastCloud = 0
-    protected readonly TIMEOUT_ALLOW_MAKE_CLOUD = 1500
+
     protected _canvas!: Canvas
 
     protected _sprite!: Image
@@ -59,8 +57,7 @@ export class Sky implements IEntity {
 
     protected _makeCloud(canvas: Canvas): TCloud {
         const startPointY = Math.floor(Math.random() * (this.HIGH_MAX - this.HIGH_MIN + 1)) + this.HIGH_MIN
-        const startPointX =
-            -Math.floor(Math.random() * (this.BEHIND_THE_SCENE_MAX - this.BEHIND_THE_SCENE_MIN + 1)) + this.BEHIND_THE_SCENE_MIN
+        const startPointX = Math.floor(Math.random() * this._screenWidth)
         const velocity = Math.floor(Math.random() * (this.SPEED_MAX - this.SPEED_MIN + 1)) + this.SPEED_MIN
 
         const cloud: TCloud = {
@@ -123,46 +120,36 @@ export class Sky implements IEntity {
         return cloud
     }
 
+    protected _randomizeCloud(cloud: TCloud) {
+        const startPointY = Math.floor(Math.random() * (this.HIGH_MAX - this.HIGH_MIN + 1)) + this.HIGH_MIN
+        const startPointX =
+            -(Math.floor(Math.random() * (this.BEHIND_THE_SCENE_MAX - this.BEHIND_THE_SCENE_MIN + 1)) + this.BEHIND_THE_SCENE_MIN)
+        const velocity = Math.floor(Math.random() * (this.SPEED_MAX - this.SPEED_MIN + 1)) + this.SPEED_MIN
+
+        cloud.x = startPointX
+        cloud.originX = startPointX
+        cloud.y = startPointY
+        cloud.originY = startPointY
+        cloud.velocity = velocity
+    }
+
     public update(dt: number, input: TInputState, delta: number, fps: number): any {
         this._cloudList.forEach(cloud => {
             cloud.x += cloud.velocity * dt
         })
 
-        const toFree: TCloud[] = []
-        this._cloudList = this._cloudList.filter(cloud => {
+        this._cloudList.forEach(cloud => {
             const farCloudEdge = Math.max(...cloud.figures.map(f => Math.abs(f.oX) + f.rX))
             const rightPoint = cloud.x + farCloudEdge
             const leftPoint = cloud.x - farCloudEdge
 
-            const result = rightPoint > 0 && leftPoint < this._screenWidth
-            if(!result) {
-                toFree.push(cloud)
+            if(rightPoint < -this.BEHIND_THE_SCENE_MAX || leftPoint > this._screenWidth) {
+                this._randomizeCloud(cloud)
             }
-
-            return result
         })
 
-        toFree.forEach((cloud, i, srcList) => {
-            cloud.figures.forEach((figure, j, figSrcList) => {
-                figure.penKit.forEach((p, k, penSrcList) => {
-                    // @ts-ignore
-                    penSrcList[k] = undefined
-                })
-                // @ts-ignore
-                figSrcList[j] = undefined
-            })
-            // @ts-ignore
-            srcList[i] = undefined
-        })
-
-        const timestampNow = Date.now()
-        if (
-            (this._timeMadeLastCloud === 0 || (timestampNow - this._timeMadeLastCloud > this.TIMEOUT_ALLOW_MAKE_CLOUD))
-            && this._cloudList.length < this.MAX_CLOUD_NUMBER
-            && Math.random() > this.CHANCE_NEW_CLOUD_SPAWN
-        ) {
+        if (this._cloudList.length < this.MAX_CLOUD_NUMBER) {
             this._cloudList.push(this._makeCloud(this._canvas))
-            this._timeMadeLastCloud = timestampNow
         }
     }
 

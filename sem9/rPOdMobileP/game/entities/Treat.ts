@@ -12,11 +12,31 @@ declare type TTreatType = {
     fillColor: string,
     fallingVelocity: number,
 
-    assetOffset?: number,
+    asset?: {
+        offset: number,
+        w: number,
+        h: number,
+    },
     frameNumber?: number,
 }
 
 export const treatTypeList = [
+    {
+        name: 'emerald-star',
+        score: 120,
+        zones: ['B', 'D',],
+        luckTest: (rand: number) => {
+            return rand > 0.81
+        },
+        fillColor: '#009c00',
+        fallingVelocity: 2,
+        asset: {
+            offset: 384,
+            w: 128,
+            h: 128,
+        },
+        frameNumber: 4,
+    },
     {
         name: 'red-star',
         score: 70,
@@ -26,7 +46,27 @@ export const treatTypeList = [
         },
         fillColor: '#ee1616',
         fallingVelocity: 2,
-        assetOffset: 24,
+        asset: {
+            offset: 256,
+            w: 128,
+            h: 128,
+        },
+        frameNumber: 4,
+    },
+    {
+        name: 'golden_fish',
+        score: 30,
+        zones: ['B', 'C', 'C', 'C', 'C', 'C', 'D',],
+        luckTest: (rand: number) => {
+            return rand > 0.6
+        },
+        fillColor: '#c4c161',
+        fallingVelocity: 3,
+        asset: {
+            offset: 128,
+            w: 128,
+            h: 128,
+        },
         frameNumber: 4,
     },
     {
@@ -38,7 +78,11 @@ export const treatTypeList = [
         },
         fillColor: '#008bff',
         fallingVelocity: 5,
-        assetOffset: 0,
+        asset: {
+            offset: 0,
+            w: 128,
+            h: 128,
+        },
         frameNumber: 4,
     },
 ]
@@ -71,8 +115,8 @@ export class Treat extends AStaticShapesIssuer implements IEntity {
         super()
         this._shape = {
             kind: 'rect',
-            w: 24,
-            h: 24,
+            w: 32,
+            h: 32,
             x: 0, y: 0, angle: 0,
             vertices: []
         }
@@ -154,13 +198,13 @@ export class Treat extends AStaticShapesIssuer implements IEntity {
         }
 
         // Animation
-        if (typeof this._type.frameNumber === 'number' && typeof this._type.assetOffset === 'number') {
+        if (typeof this._type.frameNumber === 'number' && typeof this._type.asset === 'object') {
             const frameOffsets = []
             let lastFrame
             for (let i = 0; i < this._type.frameNumber; i++) {
                 const num: number = frameOffsets.push({
-                    x: lastFrame ? lastFrame.x + this._shape.w! : 0,
-                    y: this._type.assetOffset,
+                    x: lastFrame ? lastFrame.x + this._type.asset.w : 0,
+                    y: this._type.asset.offset,
                 }) - 1
                 lastFrame = frameOffsets[num]
             }
@@ -178,8 +222,8 @@ export class Treat extends AStaticShapesIssuer implements IEntity {
                 this._sprite,
                 frameOffsets[this._currFrame].x,
                 frameOffsets[this._currFrame].y,
-                this._shape.w!,
-                this._shape.h!,
+                this._type.asset.w,
+                this._type.asset.h,
                 this._shape.x - this._shape.w! / 2,
                 this._shape.y - this._shape.h! / 2,
                 this._shape.w!,

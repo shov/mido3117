@@ -26,14 +26,19 @@ export class Boat extends AStaticShapesIssuer implements IEntity {
     protected _boundaries!: { left: number, right: number }
 
     protected _sprite!: Image
+    protected _asset!: {
+        w: number,
+        h: number,
+        image: Image,
+    }
 
 
     constructor() {
         super()
         this._shape = {
             kind: 'rect',
-            w: 80,
-            h: 40,
+            w: 100,
+            h: 60,
             x: 0, y: 0, angle: 0,
             vertices: []
         }
@@ -52,6 +57,9 @@ export class Boat extends AStaticShapesIssuer implements IEntity {
             this._sprite.addEventListener('load', r)
             this._sprite.src = Resources.loadImage('boat-default', require('../../assets/boat-default.png')).uri
         })
+        this._asset = {
+            w: 512, h: 256, image: this._sprite,
+        }
     }
 
     public getDeclaredShapes(): TStaticShape[] {
@@ -110,13 +118,13 @@ export class Boat extends AStaticShapesIssuer implements IEntity {
 
         this._shape.y += this._velocity.y * dt
 
-       this._updateShapeVertices()
+        this._updateShapeVertices()
     }
 
     public render(canvas: Canvas, ctx: CanvasRenderingContext2D, dt: number, input: TInputState, delta: number, fps: number): any {
 
         const shape = this._shape
-        if(!shape.w || !shape.h) {
+        if (!shape.w || !shape.h) {
             throw new Error('Boat shape must have h and w!')
         }
 
@@ -124,13 +132,23 @@ export class Boat extends AStaticShapesIssuer implements IEntity {
         ctx.translate(shape.x, shape.y)
         ctx.rotate(shape.angle * (Math.PI / 180))
 
-        if(this._turnedRight) {
+        if (this._turnedRight) {
             ctx.scale(-1, 1)
         }
 
         let drawY = -(shape.h / 2)
         let drawX = -(shape.w / 2)
-        ctx.drawImage(this._sprite, drawX, drawY)
+        ctx.drawImage(
+            this._asset.image,
+            0,
+            0,
+            this._asset.w,
+            this._asset.h,
+            drawX,
+            drawY,
+            this._shape.w,
+            this._shape.h
+        )
 
         // back the ctx
         ctx.restore()

@@ -6,6 +6,7 @@ import Canvas from 'react-native-canvas'
 import {GameController} from './game/GameController'
 import {GameScene} from './game/GameScene'
 import {InputController} from './game/InputController'
+import {LinearGradient} from 'expo-linear-gradient'
 
 const input = InputController.create()
 
@@ -16,19 +17,25 @@ export default function App() {
               onTouchMove={input.onTouchMove.bind(input)}
               onTouchEnd={input.onTouchEnd.bind(input)}
         >
-            <StatusBar hidden={true} />
-            <Canvas style={styles.canvas} ref={GameController.create(new GameScene(), input)} />
+            <LinearGradient
+                colors={['#93bfc9', '#77c4d5', '#42727e']}
+                locations={[0, 0.7, 1]}
+                style={{flex: 1}}
+            >
+                <StatusBar hidden={true} />
+                <Canvas style={styles.canvas} ref={GameController.create(new GameScene(), input)} />
+            </LinearGradient>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#ff0000',
+        backgroundColor: '#77c4d5',
         flex: 1,
     },
     canvas: {
-        backgroundColor: '#93bfc9',
+
         position: 'absolute',
         width: '100%',
         height: '100%',

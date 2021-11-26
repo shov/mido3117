@@ -34,10 +34,10 @@ export const treatTypeList = [
         score: 25,
         zones: ['A', 'B', 'B', 'C', 'C', 'C', 'C', 'C', 'D', 'D', 'E',],
         luckTest: (rand: number) => {
-            return rand > 0.3
+            return rand > 0.5
         },
         fillColor: '#008bff',
-        fallingVelocity: 6,
+        fallingVelocity: 5,
         assetOffset: 0,
         frameNumber: 4,
     },

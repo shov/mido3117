@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "rPOdMobileP",
-    "slug": "rPOdMobileP",
+    "name": "Captain Boatman Fisherman",
+    "slug": "captain-boatman-fisherman",
     "version": "1.0.0",
     "orientation": "landscape",
     "icon": "./assets/icon.png",
@@ -27,6 +27,8 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "description": "a simple game demo",
+    "githubUrl": "https://github.com/shov/mido3117/tree/master/sem9/rPOdMobileP"
   }
 }

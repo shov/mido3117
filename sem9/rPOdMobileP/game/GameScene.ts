@@ -3,6 +3,7 @@ import {IGameScene, TGameRenderSubscriptionCallback, TGameUpdateSubscriptionCall
 import {Boat} from './entities/Boat'
 import {Treat, treatTypeList} from './entities/Treat'
 import {Ocean} from './entities/Ocean'
+import {Sky} from './entities/Sky'
 
 export class GameScene implements IGameScene {
     protected _game!: GameController
@@ -12,16 +13,25 @@ export class GameScene implements IGameScene {
 
     public loadingScreenRenderer(game: GameController) {
         game.ctx.clearRect(0, 0, game.dimensions.width, game.dimensions.height)
-        game.ctx.fillStyle = '#243862'
+        game.ctx.fillStyle = '#77c4d5'
         game.ctx.fillRect(0, 0, game.dimensions.width, game.dimensions.height)
-        game.ctx.fillStyle = '#eac210'
+        game.ctx.fillStyle = '#ffcf55'
+        game.ctx.strokeStyle = '#0032b7'
+        game.ctx.lineWidth = 0.5
         game.ctx.font = '45px Arial'
-        game.ctx.fillText('LOADING...', game.dimensions.width / 2 - 20 * 5, game.dimensions.height / 2 - 23)
+        game.ctx.fillText('LOADING...', game.dimensions.width / 2 - 20 * 5, game.dimensions.height / 2 - 10)
+        game.ctx.strokeText('LOADING...', game.dimensions.width / 2 - 20 * 5, game.dimensions.height / 2 - 10)
     }
 
     public async load(game: GameController) {
         this._game = game
         this._dimensions = game.dimensions
+
+        // SKY
+        const sky = new Sky(game.dimensions.width, game.dimensions.height)
+        await sky.init(game.canvas)
+        game.subscribeOnUpdate(sky)
+        game.subscribeOnRender(sky)
 
         // BOAT
         const boat = new Boat()

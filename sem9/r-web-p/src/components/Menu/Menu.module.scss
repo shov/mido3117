@@ -1,0 +1,20 @@
+.menu {
+    display: flex;
+    background-color: white;
+    width: 60px;
+    box-shadow: #919191 2px 0 4px 0;
+    z-index: 1;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 15px 0 15px 0;
+    row-gap: 10px;
+
+    .fab {
+        &+.bottom {
+            position: absolute;
+            bottom: 10px;
+        }
+    }
+}

@@ -1,3 +1,4 @@
+import 'rmwc/dist/styles'
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';

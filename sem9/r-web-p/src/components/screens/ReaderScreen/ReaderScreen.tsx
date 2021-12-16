@@ -1,5 +1,6 @@
 import React, {MutableRefObject, useState} from 'react'
 import axios from 'axios'
+import {v4 as uuid4} from 'uuid'
 import st from './ReaderScreen.module.scss'
 import Word from './Word'
 
@@ -15,53 +16,84 @@ Szósta część przygód Harryego Pottera przynosi cenne informacje o matce Vol
 Nowe wydanie książki o najsłynniejszym czarodzieju świata różni się od poprzednich nie tylko okładką, ale i wnętrzem po raz pierwszy na początku każdego tomu pojawi się mapka`
 
 function ReaderScreen() {
-    const [rawContent, setRawContent] = useState(defaultRaw)
+    const [content, setContent] = useState(processRawContent(defaultRaw))
 
-    const translate = async (srcText: string, targetWord: MutableRefObject<any>) => {
+    const translate = async (wordDescriber: TWordDescriber) => {
+        let translated = wordDescriber.translated
+
         // call API
-        try {
-            const body = new URLSearchParams()
-            body.append('text', srcText)
+        if(!translated) {
+            try {
 
-            const resp = await axios({
-                method: 'post',
-                url: 'https://translate.yandex.net/api/v1.5/tr.json/translate',
-                params: {
-                    key: process.env.REACT_APP_YANDEX_T_KEY,
-                    lang: 'pl-ru',
-                },
-                headers: { 'content-type': 'application/x-www-form-urlencoded' },
-                data: body,
-            })
+                const body = new URLSearchParams()
+                body.append('text', wordDescriber.src!)
 
-            // inject translated
-            console.log(resp.data.text.join(' '))
-        } catch (e: any) {
-            console.error(e.message)
+                const resp = await axios({
+                    method: 'post',
+                    url: 'https://translate.yandex.net/api/v1.5/tr.json/translate',
+                    params: {
+                        key: process.env.REACT_APP_YANDEX_T_KEY,
+                        lang: 'pl-ru',
+                    },
+                    headers: {'content-type': 'application/x-www-form-urlencoded'},
+                    data: body,
+                })
+
+                // inject translated
+                translated = resp.data.text.join(' ')
+
+            } catch (e: any) {
+                console.error(e.message)
+            }
         }
-    }
 
-    function processRawContent(rawContent: string) {
-        return rawContent.split('\n')
-            .map(l => l.trim())
-            .filter(l => l.length > 0)
-            .reduce((acc: any[], line) => {
-                const wordLine = line.split(/\s+/)
-                    .filter(w => w.length > 0)
-                    .map(word => {
-                        return <Word translate={translate}>{word}</Word>
-                    })
-                return [...acc, ...wordLine, <div className={st.textBreak} />]
-            }, [])
+        setContent(content.map(contentWord => {
+            if(wordDescriber.id === contentWord.id) {
+                return {...contentWord, translated, hasBubble: true}
+            }
+            return contentWord
+        }))
     }
 
     return (
         <div className={st.readerScreen}>
             <div className={st.textContainer}>
-                {processRawContent(rawContent)}
+                {content.map((wordDescriber: TWordDescriber) => {
+                    if(wordDescriber.isBreak) {
+                        return <div key={wordDescriber.id} className={st.textBreak} />
+                    }
+
+                    return <Word key={wordDescriber.id} wordDescriber={wordDescriber} translate={translate}/>
+                })}
             </div>
         </div>
     )
+}
+
+function processRawContent(rawContent: string): TWordDescriber[]  {
+    let counter = 0
+    return rawContent.split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0)
+        .reduce((acc: any[], line) => {
+            const wordLine = line.split(/\s+/)
+                .filter(w => w.length > 0)
+                .map(word => {
+                    return {
+                        id: uuid4(),
+                        order: counter++,
+                        src: word,
+                        hasBubble: false,
+                    } as TWordDescriber
+                })
+
+            const breakLine: TWordDescriber =  {
+                id: uuid4(),
+                order: counter++,
+                isBreak: true
+            }
+            return [...acc, ...wordLine, breakLine]
+        }, [])
 }
 
 export default ReaderScreen

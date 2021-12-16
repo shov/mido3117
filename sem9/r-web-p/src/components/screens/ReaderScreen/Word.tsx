@@ -1,11 +1,19 @@
 import React, {useRef} from 'react'
+import st from './ReaderScreen.module.scss'
+export type TWordProps = {wordDescriber: TWordDescriber, translate: any}
 
-function Word({children, translate}: any) {
-    const wordRef = useRef(null)
+function Word({wordDescriber, translate}: TWordProps) {
     return (
-        <span ref={wordRef} onClick={async () => {
-            await translate(children, wordRef)
-        }}>{children}</span>
+        <span onClick={async () => {
+            await translate(wordDescriber)
+        }}>
+            {wordDescriber.src!}
+            {(() => {
+                if(wordDescriber.hasBubble) {
+                    return <div className={st.wordBubble}>{wordDescriber.translated}</div>
+                }
+            })()}
+        </span>
     )
 }
 

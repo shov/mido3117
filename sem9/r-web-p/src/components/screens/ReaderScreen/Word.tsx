@@ -1,9 +1,10 @@
-import React from 'react'
+import React, {useRef} from 'react'
 
 function Word({children, translate}: any) {
+    const wordRef = useRef(null)
     return (
-        <span onClick={() => {
-
+        <span ref={wordRef} onClick={async () => {
+            await translate(children, wordRef)
         }}>{children}</span>
     )
 }

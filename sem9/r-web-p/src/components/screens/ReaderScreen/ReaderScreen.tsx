@@ -1,4 +1,5 @@
-import React, {useState} from 'react'
+import React, {MutableRefObject, useState} from 'react'
+import axios from 'axios'
 import st from './ReaderScreen.module.scss'
 import Word from './Word'
 
@@ -16,6 +17,30 @@ Nowe wydanie książki o najsłynniejszym czarodzieju świata różni się od po
 function ReaderScreen() {
     const [rawContent, setRawContent] = useState(defaultRaw)
 
+    const translate = async (srcText: string, targetWord: MutableRefObject<any>) => {
+        // call API
+        try {
+            const body = new URLSearchParams()
+            body.append('text', srcText)
+
+            const resp = await axios({
+                method: 'post',
+                url: 'https://translate.yandex.net/api/v1.5/tr.json/translate',
+                params: {
+                    key: process.env.REACT_APP_YANDEX_T_KEY,
+                    lang: 'pl-ru',
+                },
+                headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                data: body,
+            })
+
+            // inject translated
+            console.log(resp.data.text.join(' '))
+        } catch (e: any) {
+            console.error(e.message)
+        }
+    }
+
     function processRawContent(rawContent: string) {
         return rawContent.split('\n')
             .map(l => l.trim())
@@ -24,9 +49,9 @@ function ReaderScreen() {
                 const wordLine = line.split(/\s+/)
                     .filter(w => w.length > 0)
                     .map(word => {
-                        return <Word>{word}</Word>
+                        return <Word translate={translate}>{word}</Word>
                     })
-                return [...acc, ...wordLine, <div className={st.textBreak}/>]
+                return [...acc, ...wordLine, <div className={st.textBreak} />]
             }, [])
     }
 

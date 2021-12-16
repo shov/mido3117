@@ -5,7 +5,7 @@ import st from './Menu.module.scss'
 function MenuFab({last, ...props}: any) {
     const classList = [st.fab]
     if(last) {
-        classList.push(st.bottom)
+        classList.push(st.last)
     }
 
     return (

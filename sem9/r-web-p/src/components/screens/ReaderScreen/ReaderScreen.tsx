@@ -17,6 +17,11 @@ Nowe wydanie książki o najsłynniejszym czarodzieju świata różni się od po
 
 function ReaderScreen() {
     const [content, setContent] = useState(processRawContent(defaultRaw))
+    // tmp
+    const contentName = 'Harry POtter'
+    const contentDate = new Date().toDateString()
+    const contentSrcLang = 'pl'
+    const clientLang = 'ru'
 
     const translate = async (wordDescriber: TWordDescriber) => {
         let translated = wordDescriber.translated
@@ -33,7 +38,7 @@ function ReaderScreen() {
                     url: 'https://translate.yandex.net/api/v1.5/tr.json/translate',
                     params: {
                         key: process.env.REACT_APP_YANDEX_T_KEY,
-                        lang: 'pl-ru',
+                        lang: `${contentSrcLang}-${clientLang}`,
                     },
                     headers: {'content-type': 'application/x-www-form-urlencoded'},
                     data: body,
@@ -51,13 +56,14 @@ function ReaderScreen() {
             if(wordDescriber.id === contentWord.id) {
                 return {...contentWord, translated, hasBubble: true}
             }
-            return contentWord
+            return {...contentWord, hasBubble: false}
         }))
     }
 
     return (
         <div className={st.readerScreen}>
             <div className={st.textContainer}>
+                <div className={st.infoLine}>{contentName} {contentDate} {contentSrcLang} -&gt; {clientLang}</div>
                 {content.map((wordDescriber: TWordDescriber) => {
                     if(wordDescriber.isBreak) {
                         return <div key={wordDescriber.id} className={st.textBreak} />

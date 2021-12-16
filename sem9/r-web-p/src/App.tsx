@@ -1,5 +1,5 @@
 import React from 'react'
-import './App.css'
+import './App.scss'
 import ReaderScreen from './components/screens/ReaderScreen/ReaderScreen'
 import Menu from './components/Menu/Menu'
 

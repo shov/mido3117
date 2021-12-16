@@ -4,13 +4,13 @@ export type TWordProps = {wordDescriber: TWordDescriber, translate: any}
 
 function Word({wordDescriber, translate}: TWordProps) {
     return (
-        <span onClick={async () => {
+        <span className={st.word} onClick={async () => {
             await translate(wordDescriber)
         }}>
             {wordDescriber.src!}
             {(() => {
                 if(wordDescriber.hasBubble) {
-                    return <div className={st.wordBubble}>{wordDescriber.translated}</div>
+                    return <div className={st.bubble}>{wordDescriber.translated}</div>
                 }
             })()}
         </span>

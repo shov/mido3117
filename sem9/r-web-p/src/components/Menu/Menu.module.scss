@@ -12,9 +12,27 @@
     row-gap: 10px;
 
     .fab {
-        &+.bottom {
+        &+.last {
             position: absolute;
             bottom: 10px;
+        }
+    }
+}
+
+@media only screen and (max-width: 600px) {
+    .menu {
+        flex-direction: row;
+        width: auto;
+        height: 60px;
+        padding: 0 15px 0 15px;
+        justify-content: flex-end;
+
+        .fab {
+            &+.last {
+                position: absolute;
+                left: 10px;
+                bottom: auto;
+            }
         }
     }
 }

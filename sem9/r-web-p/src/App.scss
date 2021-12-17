@@ -1,3 +1,7 @@
+:root {
+  --app-height: 100%;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -26,7 +30,7 @@ body {
 
 @media only screen and (max-width: 600px) {
   .App {
-    flex-direction: column-reverse;
+    flex-direction: column;
   }
 }
 

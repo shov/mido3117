@@ -1,0 +1,39 @@
+.loginScreen {
+    background-color: var(--mdc-theme-background);
+    display: flex;
+    flex: 1;
+    color: var(--mdc-theme-on-surface);
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+
+    .authForm {
+        width: 500px;
+        height: 250px;
+        box-shadow: #919191 2px 0 4px 0;
+        padding: 10px;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .headLine {
+            margin: 10px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            gap: 10px;
+
+            justify-content: center;
+            align-content: center;
+            align-items: center;
+
+            * {
+                width: 440px;
+            }
+        }
+    }
+}

@@ -4,23 +4,15 @@ import {v4 as uuid4} from 'uuid'
 import st from './ReaderScreen.module.scss'
 import Word from './Word'
 
-const defaultRaw = `Po nieudanej próbie przechwycenia przepowiedni Lord Voldemort jest gotów uczynić wszystko, by zawładnąć światem czarodziejów. Organizuje tajemny zamach na swego przeciwnika, a narzędziem w jego ręku staje się jeden z uczniów. Czy jego plan się powiedzie?
-
-Szósta część przygód Harryego Pottera przynosi cenne informacje o matce Voldemorta, jego dzieciństwie oraz początkach kariery młodego Toma Riddle'a, które rzucą nowe światło na sylwetkę głównego antagonisty Pottera. Na czym polega sekret nadprzyrodzonej mocy Czarnego Pana? Jaki jest cel tajemniczych i niebezpiecznych wypraw Dumbledore'a? I wreszcie, kto jest tytułowym Księciem Półkrwi i jaką misję ma on do spełnienia?
-
-Nowe wydanie książki o najsłynniejszym czarodzieju świata różni się od poprzednich nie tylko okładką, ale i wnętrzem po raz pierwszy na początku każdego tomu pojawi się mapka
-Po nieudanej próbie przechwycenia przepowiedni Lord Voldemort jest gotów uczynić wszystko, by zawładnąć światem czarodziejów. Organizuje tajemny zamach na swego przeciwnika, a narzędziem w jego ręku staje się jeden z uczniów. Czy jego plan się powiedzie?
-
-Szósta część przygód Harryego Pottera przynosi cenne informacje o matce Voldemorta, jego dzieciństwie oraz początkach kariery młodego Toma Riddle'a, które rzucą nowe światło na sylwetkę głównego antagonisty Pottera. Na czym polega sekret nadprzyrodzonej mocy Czarnego Pana? Jaki jest cel tajemniczych i niebezpiecznych wypraw Dumbledore'a? I wreszcie, kto jest tytułowym Księciem Półkrwi i jaką misję ma on do spełnienia?
-
-Nowe wydanie książki o najsłynniejszym czarodzieju świata różni się od poprzednich nie tylko okładką, ale i wnętrzem po raz pierwszy na początku każdego tomu pojawi się mapka`
+const defaultRaw = `This lavish gift edition of J.R.R. Tolkien's classic features cover art, illustrations, and watercolor paintings by the artist Alan Lee. Bilbo Baggins is a hobbit who enjoys a comfortable, unambitious life, rarely traveling any farther than his pantry or cellar. 
+But his contentment is disturbed when the wizard Gandalf and a company of dwarves arrive on his doorstep one day to whisk him away on an adventure. They have launched a plot to raid the treasure hoard guarded by Smaug the Magnificent, a large and very dangerous dragon. Bilbo reluctantly joins their quest, unaware that on his journey to the Lonely Mountain he will encounter both a magic ring and a frightening creature known as Gollum.  Written for J.R.R. Tolkien's own children, The Hobbit has sold many millions of copies worldwide and established itself as a modern classic.`
 
 function ReaderScreen() {
     const [content, setContent] = useState(processRawContent(defaultRaw))
     // tmp
-    const contentName = 'Harry POtter'
+    const contentName = 'Hobbit desc'
     const contentDate = new Date().toDateString()
-    const contentSrcLang = 'pl'
+    const contentSrcLang = 'en'
     const clientLang = 'ru'
 
     const translate = async (wordDescriber: TWordDescriber) => {

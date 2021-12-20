@@ -1,12 +1,14 @@
-import React, {FormEvent, useState} from 'react'
+import React, {FormEvent, useContext, useState} from 'react'
 import st from './LoginScreen.module.scss'
 import {Button, SimpleDialog, TextField, Typography} from 'rmwc'
-
+import {AuthContext} from '../../../AuthContext'
 
 function LoginScreen() {
+    const {isAuth, setAuth} = (useContext(AuthContext) as unknown) as {isAuth: boolean, setAuth: any}
     const [isPopup, setIsPopup] = useState(false)
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
+        // call the server if true set Auth true, put token to the storage
         setIsPopup(true)
     }
     return (

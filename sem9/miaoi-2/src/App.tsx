@@ -28,14 +28,15 @@ async function loadImageOnCanvas(
 
 declare type TMenuPropList = {
     uploadDoneWith: any,
-    convertInterface: () => ({setDestImage: any, srcImage: string | ArrayBuffer}),
+    convertInterface: () => ({ setDestImage: any, srcImage: string | ArrayBuffer }),
 }
 
 function Menu({uploadDoneWith, convertInterface}: TMenuPropList) {
     const uploadField = useRef<HTMLInputElement>(null)
+
     function upload() {
         try {
-            if(uploadField.current) {
+            if (uploadField.current) {
                 const input = uploadField.current
                 //@ts-ignore
                 const file = input.files[0]
@@ -88,7 +89,7 @@ function Menu({uploadDoneWith, convertInterface}: TMenuPropList) {
                 onChange={upload}
             />
             <Fab onClick={() => {
-                if(uploadField.current) {
+                if (uploadField.current) {
                     uploadField.current.click()
                 }
             }} mini icon={'upload'} />
@@ -99,9 +100,10 @@ function Menu({uploadDoneWith, convertInterface}: TMenuPropList) {
 
 declare type TImageViewPropList = {
     imgData: string | ArrayBuffer,
+    label: string,
 }
 
-function ImageView({imgData}: TImageViewPropList) {
+function ImageView({imgData, label}: TImageViewPropList) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     useEffect(() => {
         try {
@@ -118,9 +120,19 @@ function ImageView({imgData}: TImageViewPropList) {
         <div className={st.ImageView}>
             <div className={st.ScrollBox}>
                 <canvas ref={canvasRef} />
+                <div className={st.Label}>{label}</div>
             </div>
         </div>
     )
+}
+
+function ViewArea({children}: {children: any}) {
+    return (
+        <div className={st.ViewArea}>
+            {children}
+        </div>
+    )
+
 }
 
 function App() {
@@ -136,8 +148,10 @@ function App() {
                     srcImage,
                 })}
             />
-            <ImageView imgData={srcImage} />
-            <ImageView imgData={destImage} />
+            <ViewArea>
+                <ImageView label={'Original RGB'} imgData={srcImage} />
+                <ImageView label={`RGB -> Lab -> L'ab -> RGB`} imgData={destImage} />
+            </ViewArea>
         </div>
     )
 }

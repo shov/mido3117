@@ -1,0 +1,29 @@
+:root {
+  --app-height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+body {
+  display: flex;
+  flex: 1;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+#root {
+  display: flex;
+  flex: 1;
+  min-height: 100%;
+}
+.App {
+  display: flex;
+  flex: 1;
+  min-height: 100%;
+}

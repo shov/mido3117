@@ -1,0 +1,15 @@
+.Menu {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: center;
+    padding: 10px;
+    height: 60px;
+    box-shadow: grey 1px 3px 4px;
+}
+
+.Disable {
+    background-color: #9a9a9a;
+}

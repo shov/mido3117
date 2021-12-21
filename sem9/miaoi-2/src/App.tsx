@@ -1,7 +1,8 @@
 import React, {useEffect, useRef, useState} from 'react'
 import './App.scss'
-import st from './Comp.module.scss'
+import st from './ComponentStyle.module.scss'
 import {Fab} from 'rmwc'
+import ImageTool from './ImageTool'
 
 async function loadImageOnCanvas(
     canvas: HTMLCanvasElement,
@@ -28,7 +29,11 @@ async function loadImageOnCanvas(
 
 declare type TMenuPropList = {
     uploadDoneWith: any,
-    convertInterface: () => ({ setDestImage: any, srcImage: string | ArrayBuffer }),
+    convertInterface: () => ({
+        setLabel: any,
+        setDestImage: any,
+        srcImage: string | ArrayBuffer
+    }),
 }
 
 function Menu({uploadDoneWith, convertInterface}: TMenuPropList) {
@@ -59,22 +64,34 @@ function Menu({uploadDoneWith, convertInterface}: TMenuPropList) {
         }
     }
 
-    function convert() {
-        const {setDestImage, srcImage} = convertInterface()
+    function sobel() {
+        const {setDestImage, srcImage, setLabel} = convertInterface()
         const canvas = document.createElement('canvas')
         loadImageOnCanvas(canvas, srcImage)
             .then(ctx => {
                 const imageData: ImageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-                const data: Uint8ClampedArray = imageData.data
 
-                for (let i = 0; i < data.length; i += 4) {
-                    data[i] = 255 - data[i]         // r
-                    data[i + 1] = 255 - data[i + 1] // g
-                    data[i + 2] = 255 - data[i + 2] // b
-                }
+                ImageTool.SobelFilter(imageData, canvas.width)
 
                 ctx.putImageData(imageData, 0, 0)
                 setDestImage(canvas.toDataURL('image/png'))
+                setLabel('Filtered by Sobel')
+            })
+            .catch(e => alert(e.message))
+    }
+
+    function prewittFilter() {
+        const {setDestImage, srcImage, setLabel} = convertInterface()
+        const canvas = document.createElement('canvas')
+        loadImageOnCanvas(canvas, srcImage)
+            .then(ctx => {
+                const imageData: ImageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+
+                ImageTool.PrewittFilter(imageData, canvas.width)
+
+                ctx.putImageData(imageData, 0, 0)
+                setDestImage(canvas.toDataURL('image/png'))
+                setLabel('Filtered by Prewitt')
             })
             .catch(e => alert(e.message))
     }
@@ -92,8 +109,9 @@ function Menu({uploadDoneWith, convertInterface}: TMenuPropList) {
                 if (uploadField.current) {
                     uploadField.current.click()
                 }
-            }} mini icon={'upload'} />
-            <Fab onClick={convert} mini icon={'autorenew'} />
+            }} mini icon={'upload'} title={'Start: Upload a pic'} />
+            <Fab onClick={sobel} mini icon={'star'} />
+            <Fab onClick={prewittFilter} mini icon={'autorenew'} title={'Prewitt Filter'} />
         </div>
     )
 }
@@ -126,7 +144,7 @@ function ImageView({imgData, label}: TImageViewPropList) {
     )
 }
 
-function ViewArea({children}: {children: any}) {
+function ViewArea({children}: { children: any }) {
     return (
         <div className={st.ViewArea}>
             {children}
@@ -138,6 +156,7 @@ function ViewArea({children}: {children: any}) {
 function App() {
     const [srcImage, setSrcImage] = useState('')
     const [destImage, setDestImage] = useState('')
+    const [destLabel, setDestLabel] = useState('No result yet, upload image and click on a filer')
 
     return (
         <div className="App">
@@ -146,11 +165,12 @@ function App() {
                 convertInterface={() => ({
                     setDestImage,
                     srcImage,
+                    setLabel: setDestLabel,
                 })}
             />
             <ViewArea>
-                <ImageView label={'Original RGB'} imgData={srcImage} />
-                <ImageView label={`RGB -> Lab -> L'ab -> RGB`} imgData={destImage} />
+                <ImageView label={'Original'} imgData={srcImage} />
+                <ImageView label={destLabel} imgData={destImage} />
             </ViewArea>
         </div>
     )

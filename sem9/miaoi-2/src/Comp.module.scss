@@ -1,0 +1,29 @@
+.Menu {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: center;
+    padding: 10px;
+    height: 60px;
+    box-shadow: grey 1px 3px 4px;
+}
+
+.ImageView {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: center;
+    padding: 10px;
+    box-shadow: grey 0px 0px 4px;
+    width: 100vw;
+    height: calc(50vh - 10px - 30px);
+    .ScrollBox {
+        overflow: auto;
+        width: 100%;
+        height: 100%;
+    }
+}

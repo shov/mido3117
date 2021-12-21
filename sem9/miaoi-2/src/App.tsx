@@ -3,12 +3,35 @@ import './App.scss'
 import st from './Comp.module.scss'
 import {Fab} from 'rmwc'
 
-declare type TMenuPropList = {
-    uploadDoneWith: any,
-    convertDoneWith: any,
+async function loadImageOnCanvas(
+    canvas: HTMLCanvasElement,
+    imgData: string | ArrayBuffer
+): Promise<CanvasRenderingContext2D> {
+    const img = new Image()
+    return await new Promise((r, j) => {
+        img.onload = () => {
+            try {
+                canvas.width = img.width
+                canvas.height = img.height
+                const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!
+                ctx.drawImage(img, 0, 0)
+                r(ctx)
+            } catch (e: any) {
+                j(e)
+            }
+        }
+
+        // @ts-ignore
+        img.src = imgData
+    })
 }
 
-function Menu({uploadDoneWith, convertDoneWith}: TMenuPropList) {
+declare type TMenuPropList = {
+    uploadDoneWith: any,
+    convertInterface: () => ({setDestImage: any, srcImage: string | ArrayBuffer}),
+}
+
+function Menu({uploadDoneWith, convertInterface}: TMenuPropList) {
     const uploadField = useRef<HTMLInputElement>(null)
     function upload() {
         try {
@@ -35,6 +58,26 @@ function Menu({uploadDoneWith, convertDoneWith}: TMenuPropList) {
         }
     }
 
+    function convert() {
+        const {setDestImage, srcImage} = convertInterface()
+        const canvas = document.createElement('canvas')
+        loadImageOnCanvas(canvas, srcImage)
+            .then(ctx => {
+                const imageData: ImageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+                const data: Uint8ClampedArray = imageData.data
+
+                for (let i = 0; i < data.length; i += 4) {
+                    data[i] = 255 - data[i]         // r
+                    data[i + 1] = 255 - data[i + 1] // g
+                    data[i + 2] = 255 - data[i + 2] // b
+                }
+
+                ctx.putImageData(imageData, 0, 0)
+                setDestImage(canvas.toDataURL('image/png'))
+            })
+            .catch(e => alert(e.message))
+    }
+
     return (
         <div className={st.Menu}>
             <input
@@ -49,7 +92,7 @@ function Menu({uploadDoneWith, convertDoneWith}: TMenuPropList) {
                     uploadField.current.click()
                 }
             }} mini icon={'upload'} />
-            <Fab mini icon={'autorenew'} />
+            <Fab onClick={convert} mini icon={'autorenew'} />
         </div>
     )
 }
@@ -64,20 +107,7 @@ function ImageView({imgData}: TImageViewPropList) {
         try {
             if (canvasRef.current) {
                 const canvas = canvasRef.current
-                const img = new Image()
-                img.onload = () => {
-                    try {
-                        canvas.width = img.width
-                        canvas.height = img.height
-                        const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!
-                        ctx.drawImage(img, 0, 0)
-                        // todo null upload bt value
-                    } catch (e: any) {
-                        alert(e.message)
-                    }
-                }
-                // @ts-ignore
-                img.src = imgData
+                loadImageOnCanvas(canvas, imgData).catch(e => alert(e.message))
             }
         } catch (e: any) {
             alert(e.message)
@@ -99,7 +129,13 @@ function App() {
 
     return (
         <div className="App">
-            <Menu uploadDoneWith={setSrcImage} convertDoneWith={setDestImage}/>
+            <Menu
+                uploadDoneWith={setSrcImage}
+                convertInterface={() => ({
+                    setDestImage,
+                    srcImage,
+                })}
+            />
             <ImageView imgData={srcImage} />
             <ImageView imgData={destImage} />
         </div>

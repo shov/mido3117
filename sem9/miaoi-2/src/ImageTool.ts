@@ -82,14 +82,14 @@ export default class ImageTool {
 
         const runForKernel = (kernel: TKernel3, x: number, y: number): number => {
             return [
-                kernel[0][0] * get(x - 1, y - 1) +
-                kernel[0][1] * get(x + 0, y - 1) +
-                kernel[0][2] * get(x + 1, y - 1) +
-                kernel[1][0] * get(x - 1, y + 0) +
-                kernel[1][1] * get(x + 0, y + 0) +
-                kernel[1][2] * get(x + 1, y + 0) +
-                kernel[2][0] * get(x - 1, y + 1) +
-                kernel[2][1] * get(x + 0, y + 1) +
+                kernel[0][0] * get(x - 1, y - 1),
+                kernel[0][1] * get(x + 0, y - 1),
+                kernel[0][2] * get(x + 1, y - 1),
+                kernel[1][0] * get(x - 1, y + 0),
+                kernel[1][1] * get(x + 0, y + 0),
+                kernel[1][2] * get(x + 1, y + 0),
+                kernel[2][0] * get(x - 1, y + 1),
+                kernel[2][1] * get(x + 0, y + 1),
                 kernel[2][2] * get(x + 1, y + 1)
             ].reduce((acc, val) => acc + val, 0)
         }
